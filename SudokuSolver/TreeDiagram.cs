@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SudokuSolver
 {
-    public class TreeDiagram
+    public partial class TreeDiagram
     {
         public string[,] Grid {get; private set;}
         public TempBlock[,] TempGrid {get; private set;}
@@ -27,6 +27,8 @@ namespace SudokuSolver
         private Point Next;
         private List<Tuple<Point, int, bool, bool>> Logger;
         private Debug debug;
+
+        public InvalidGridException Error { get; private set; }
 
         public TreeDiagram(string[,] g, int sbw)
         {
@@ -77,13 +79,8 @@ namespace SudokuSolver
             }
             ImpossibleGrid = TempGrid;
         }
-        /// <summary>
-        /// Point - location
-        /// int - value
-        /// bool - CheckFinish()
-        /// bool - Leftovercount == 0
-        /// </summary>
-        
+
+        public bool FinishFlag { get; private set; }
 
         public void ExecuteTry()
         {
@@ -94,123 +91,88 @@ namespace SudokuSolver
             int EmptyCount = GetTotalLeftOver();
             bool finish = CheckFinish();
 
-            while (!finish)
+            try
             {
-            STEP1:
+                while (!finish)
+            {
                 Next = GetNextEmpty();
-            if (Next.x == -1)
-            {
-                bool fail = CheckFailure();
-                if (fail)
-                {
-                    Grid = backupGrid;
-                    Next = GetNextEmpty();
-                }
-                else return;
-            }
-                finish = CheckFinish();
-            
-        STEP2:
-        if (!finish)
-                {
-                //true
-                STEP23:
-                    TempGrid[Next.x, Next.y].Possibles = GetPossible(Next.x, Next.y,true).ToList();
-                STEP3:
-                    PrintAll();
-                    PrintAllTempStack();
-                    Console.Write(Next.ToString()+ ": ");
-                    TempGrid[Next.x, Next.y].Possibles.ToList().ForEach(a => Console.Write(a + " "));
-                    Console.Write("-----------\n");
-                    Logger.ForEach(a => debug.LoggerWrite(a.ToString()));
-                    debug.LoggerWrite("----------");
-                    if (TempGrid[Next.x, Next.y].Possibles.Count == 0)
-                    {
-                    //true  
-                        if (TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Count == 0)
+                finish = CheckFinish();            
+                if (!finish)
                         {
-                            Logger.RemoveAt(Logger.Count - 1);
-                            goto STEP3;        
+                        //true
+                        STEP2:
+                            if (Next.x == -1)
+                            {
+                                bool fail = CheckFailure();
+                                FinishFlag = !fail; //if fail == true, finishflag means incomplete, 
+                                return; //return regardless of succeed or failure
+                            }
+                            TempGrid[Next.x, Next.y].Possibles = GetPossible(Next.x, Next.y,true).ToList();
+                        STEP3:
+                            #region Debug
+                            if (TempGrid[Next.x, Next.y].Possibles.Count != 0)
+                            {
+                                //Console.Write(Next.ToString() + ": ");
+                                //TempGrid[Next.x, Next.y].Possibles.ToList().ForEach(a => Console.Write(a + " "));
+                                //Console.WriteLine();
+                                //Console.Write("-----------\n");
+
+                                string debugwrite = Next.ToString();
+                                TempGrid[Next.x, Next.y].Possibles.ToList().ForEach(a => debugwrite += (a + " "));
+                                debug.LoggerWrite(debugwrite);
+                            }
+                            //debug.LoggerWrite("----------");
+                            #endregion
+                            
+                            if (TempGrid[Next.x, Next.y].Possibles.Count == 0)
+                            {
+                            //true  
+                                if (TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Count == 0)
+                                {
+                                    
+                                    Logger.Remove(Logger.Last());
+                                    goto STEP3;        
+                                }
+                                else
+                                {
+                                    TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Remove(Logger.Last().Item2);
+                                    Next = Logger.Last().Item1;//rollback one
+                                    Grid[Next.x, Next.y] = "x";
+                                    #region Debug
+                                    debug.Write(string.Format("Removed: {0}, {1}", Logger.Last().Item1, Logger.Last().Item2));
+                                    string debugout = String.Empty;
+                                    TempGrid[Next.x, Next.y].Possibles.ToList().ForEach(a => debugout += (a.ToString() + " "));
+                                    debug.Write(debugout);
+                                    #endregion
+
+                                    
+                                    Logger.Remove(Logger.Last());
+                                    goto STEP3;
+                                }                    
+                            }
+                            else
+                            {
+                                //false
+                                Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[0].ToString();
+                                Logger.Add(new Tuple<Point, int, bool, bool>(Next, TempGrid[Next.x, Next.y].Possibles[0], CheckFinish(), GetTotalLeftOver() == 0));
+                                
+                                debug.Write(string.Format("Logged: {0}, {1}", Logger.Last().Item1, Logger.Last().Item2));
+                                Next = GetNextEmpty();
+                                goto STEP2;
+                            }
                         }
                         else
                         {
-                            TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Remove(Logger.Last().Item2);
-                            Next = Logger.Last().Item1;//rollback one
-                            Grid[Next.x, Next.y] = "x";
-                            debug.Write(string.Format("Removed: {0}, {1}", Logger.Last().Item1, Logger.Last().Item2));
-                            string debugout = String.Empty;
-                            TempGrid[Next.x, Next.y].Possibles.ToList().ForEach(a=> debugout += (a.ToString()+ " "));
-                            debug.Write(debugout);
-                            Logger.RemoveAt(Logger.Count - 1);
-                            goto STEP3;
+                            return;
                         }
-                    //Next = GetNextEmpty();
-                    
-                    }
-                    else
-                    {
-                        //false
-                        Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[0].ToString();
-                        Logger.Add(new Tuple<Point, int, bool, bool>(Next, TempGrid[Next.x, Next.y].Possibles[0], CheckFinish(), GetTotalLeftOver() == 0));
-                        debug.Write(string.Format("Logged: {0}, {1}", Logger.Last().Item1, Logger.Last().Item2));
-                        Next = GetNextEmpty();
-                        goto STEP2;
-
-                    }
-                }
-                else
-                {
-                    return;
-                }
             }
-            
-
-
-            //if (finish) return;
-            
-            //while (!finish)
-            //{
-            //    PrintAll();
-            //    PrintAllTempStack();
-
-            //STEP11:
-            //    finish = CheckFinish();
-            //    if (finish) return;
-            //STEP2:
-            //    Next = GetNextEmpty();//target;
-            //if (Next.x == -1) return;
-            //    if (!CheckFinish())
-            //    {
-            //    STEP3:
-            //        if ((TempGrid[Next.x, Next.y].Possibles.Count == 0) && (Logger.Count != 0))
-            //        {
-            //        STEP5:
-            //            if (TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Count == 0)
-            //            {
-            //                TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Add(Logger.Last().Item2); //add back
-            //                Grid[Logger.Last().Item1.x, Logger.Last().Item1.y] = "x";
-            //                Logger.RemoveAt(Logger.Count - 1);
-                            
-            //                goto STEP5;
-            //            }
-            //            else
-            //            {
-            //                TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Remove(Logger.Last().Item2);
-            //                Next = Logger.Last().Item1;
-            //                goto STEP3;
-            //            }
-            //        }
-            //        else
-            //        {
-            //            Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[0].ToString();
-            //            Logger.Add(new Tuple<Point, int, bool, bool>(Next, TempGrid[Next.x, Next.y].Possibles[0], CheckFinish(), GetTotalLeftOver() == 0));
-            //            goto STEP11;   
-            //        }
-            //    }
-            //    else return;
-                
-            //}
-            //return;
+            }
+            catch (Exception)
+            {
+                Error = new InvalidGridException("Grid Invalid");
+                FinishFlag = false;
+                return;
+            }
         }
         private void FillCorrectTemp()
         {
@@ -378,11 +340,12 @@ namespace SudokuSolver
                 for (int y = 0; y < FullGridWidth; y+=4)
                 {
                     int[] pos = FullInts.Except(GetInnerBlockRowImpossible(x, y)).ToArray();
-                    if ((pos != null)||(pos.Length!=0)) return true;
+                    if (pos.Length!=0) return true;
                 }
             }
             return false;
         }
+
 
         #region Advanced
         /// <summary>
