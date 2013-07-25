@@ -52,3 +52,8 @@ Example line for 9x9 grid: ```x x x 3 x x 5 x 9 1```
 ### 3. Run it
 
 Run it.
+
+## License
+==
+
+Released under GNU License 3
