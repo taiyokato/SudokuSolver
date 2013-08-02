@@ -1,34 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.ComponentModel;
 
 namespace SudokuSolver
 {
     partial class Solver
     {
-        private string[,] Grid; // Type=string for compatibility for 2-digit values and char 'x'
+        #region def
+        /// <summary>
+        /// Main grid. Didn't use char[,] due to comaptibility with grids greater than 9x9, for they have 2-digit values
+        /// メイン表。2桁数値対応のため、char[,]をしようしない。
+        /// </summary>
+        private string[,] Grid;
+        /// <summary>
+        /// Temp grid for holding possible values
+        /// サブ表。マスに入れる可能性の値を保管する
+        /// </summary>
         private TempBlock[,] TempGrid; //[x, y]
+        /// <summary>
+        /// Measure used when printing out grids
+        /// 表のプリントアウト時に使う測り
+        /// </summary>
         private int[] SeparateLines = { 0, 3, 6 };
-        private int[] FullInts = { 1, 2, 3, 4, 5, 6, 7, 8, 9 }; // basic 9x9 grid 
+        /// <summary> 
+        /// All possible values array used for filter out possible values
+        /// 可能の値の配列。不可能値の排除に使う
+        /// </summary>
+        private int[] FullInts = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         protected int? singleblockw;
+        /// <summary> 
+        /// For accessing nullable int singleblockw 
+        /// Nullable int singleblockwをアクセスするために。singleblockwがnullならデフォルトの3を返す
+        /// </summary>
         private int SingleBlockWidth
         {
             get { return (singleblockw.HasValue) ? singleblockw.Value : 3; }
             set { singleblockw = value; }
         }
+        /// <summary> 
+        /// Shortcut for getting full grid width since n^2 
+        /// 表のフルサイズを取得するショートカット。表のサイズはSingleBlockWidthのn^2
+        /// </summary>
         private int FullGridWidth
         {
             get { return (SingleBlockWidth * SingleBlockWidth); }
         }
+        /// <summary> 
+        /// Switch for changing printout 
+        /// 最終プリントアウトのスイッチ
+        /// </summary>
         private bool treesuccess = true;
+        #endregion
 
+        /// <summary>
+        /// Main method
+        /// 入り込みポイント
+        /// </summary>
         public Solver()
         {
-
             //Get the size first, then initialize Grid
-            SETSIZE:
-            Console.WriteLine("Input grid width: ");
+            SETSIZE: //label for reset grid size
+            Console.WriteLine("Input full grid width: ");
+            Console.WriteLine("Grid size must be greater than 9, and √size must be a whole number");
             Console.WriteLine(" Usable escape strings are available.\n The default grid size will be 9x9 if escape strings are used");
             Console.WriteLine(" Usable escape strings for default are:");
             Console.WriteLine(" {0, null, -, --}");
@@ -41,9 +74,9 @@ namespace SudokuSolver
             Initialize();
 
 
-            Console.WriteLine("Input Each line\n Enter empty values as x\nSeparate values with a space: ");
+            Console.WriteLine("Input Each line\nEnter empty values as x\nSeparate values with a space\nIf full grid width is less than 9, space is not required: ");
             Console.WriteLine("Input \"redo\" to re-set grid size");
-            if (ReadLines()) { Console.Clear();  goto SETSIZE; }
+            if (ReadLines()) { Console.Clear();  goto SETSIZE; } //if ReadLines return true, reset grid size
 
             Console.WriteLine();
             Console.WriteLine("Input values are: ");
@@ -65,8 +98,7 @@ namespace SudokuSolver
             Console.WriteLine("Now solving...");
 
             treesuccess = TreeDiagramSolve();
-            //PrintTempStack();
-
+            
             FINISH:
             if (treesuccess) Console.WriteLine("Result:");
             PrintAll();
@@ -80,19 +112,27 @@ namespace SudokuSolver
             Console.Read();
         }
 
-
         void Basic()
         {
             FillTemp();
-            BasicSolve();
+            for (int x = 0; x < FullGridWidth; x++)
+            {
+                for (int y = 0; y < FullGridWidth; y++)
+                {
+                    //HookEventHandler();
+                    if (!Grid[x, y].Equals("x")) continue; //DONT DO ANYTHING IF THE BLOCK IS ALREADY FILLED WITH NUMBER
+                    if (TempGrid[x, y].Possibles.Count == 1) { Grid[x, y] = TempGrid[x, y].Possibles[0].ToString(); CleanTempGrid(x, y); }
+                }
+            }
         }
         void Advanced()
         {
-            int loop = 30;
-            
-            int trackloop = 1;
             //Auto loop until all complete. Manual break available
-            string[,] backupGrid = Grid.Clone() as string[,]; //MUST USE Clone() as string[,] to prevent backupGrid getting overwritten when Grid is changed;
+            int loop = 30;
+            int trackloop = 1;
+
+            //MUST USE Clone() as string[,] to prevent backupGrid getting overwritten when Grid is changed;
+            string[,] backupGrid = Grid.Clone() as string[,]; 
             while (!CheckFinish())
             {
                 //if (trackloop == loop)
@@ -100,7 +140,6 @@ namespace SudokuSolver
                 //    //Console.WriteLine("Guess limit reached. Manual break."); 
                 //    //break; 
                 //}
-                //Console.WriteLine("Advanced Solve {0}:", trackloop);
                 AdvancedFill(true);
                 CheckLeftOver2();
                 bool gridsame = GridSame(backupGrid);
@@ -111,11 +150,18 @@ namespace SudokuSolver
         }
         bool TreeDiagramSolve()
         {
+            //create TreeDiagram instance for easier code management
             TreeDiagram td = new TreeDiagram(Grid, SingleBlockWidth);
-            td.ExecuteTry();
+            td.Execute();
+            #region third recursion test
+            //System.Threading.Thread thread = new System.Threading.Thread(new System.Threading.ThreadStart(td.recursiontry), 100000000);
+            //thread.Start();
+            //thread.Join();
+            #endregion
+            
             if (!td.FinishFlag)
             {
-                Console.WriteLine(td.Error.Message);
+                Console.WriteLine("Grid invalid");
                 return false;
             }
             else
@@ -124,13 +170,7 @@ namespace SudokuSolver
                 return true;
             }
         }
-        void PrintTempStack()
-        {
-            Console.WriteLine();
-            Console.WriteLine("TempGrid Possibility CountStack: ");
-            PrintAllTempStack();
-        }
-
+        
         private bool GridSame(string[,] backup)
         {
 
@@ -141,11 +181,6 @@ namespace SudokuSolver
                     if (Grid[x, y] != backup[x, y]) return false;
                 }
             }
-            //PrintAll();
-            //string[,] temp = Grid;
-            //Grid = backup;
-            //PrintAll();
-            //Grid = temp;
             return true;
 
         }
@@ -199,6 +234,7 @@ namespace SudokuSolver
                 split.ToList().ForEach(a => a.Trim()); //trim each item
                 for (int x = 0; x < FullGridWidth; x++)
                 {
+                    //if 2-digit value is possible, split check
                     if ((FullGridWidth < 10) && (split[0].Length == FullGridWidth))
                     {
                         for (int z = 0; z < FullGridWidth; z++)
@@ -206,7 +242,7 @@ namespace SudokuSolver
                             Grid[i, x] = split[0][z].ToString();
                         }
                     }
-                    else
+                    else //else don't care about having space in between
                     {
                         Grid[i, x] = split[x];
                     }
@@ -231,7 +267,8 @@ namespace SudokuSolver
                 try
                 {
                     testval = int.Parse(line);
-                    if (Math.Sqrt((double)testval) % 1 == 0) break; //check if testval is a valid number of n^n, by seeing if self rooting results a whole number
+                    //size cannot be 1x1, grids size less than 9x9 are too annoying Lol
+                    if ((testval >= 9) && (Math.Sqrt((double)testval) % 1 == 0)) break; //check if testval is a valid number of n^n, by seeing if self rooting results a whole number
                 }
                 catch (Exception)
                 {
@@ -526,7 +563,6 @@ namespace SudokuSolver
             }
         }
         
-
         /// <summary>
         /// Gets inblock possible distinct values
         /// </summary>
@@ -575,19 +611,6 @@ namespace SudokuSolver
         }
         
         #endregion
-
-        private void BasicSolve()
-        {
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    //HookEventHandler();
-                    if (!Grid[x, y].Equals("x")) continue; //DONT DO ANYTHING IF THE BLOCK IS ALREADY FILLED WITH NUMBER
-                    if (TempGrid[x, y].Possibles.Count == 1) { Grid[x, y] = TempGrid[x, y].Possibles[0].ToString(); CleanTempGrid(x, y); }
-                }
-            }
-        }
 
         #region Leftover possible value check
         private void CheckLeftOver2()

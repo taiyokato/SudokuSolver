@@ -1,320 +1,159 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SudokuSolver
 {
     public partial class TreeDiagram
     {
-        public string[,] Grid {get; private set;}
-        public TempBlock[,] TempGrid {get; private set;}
-        public TempBlock[,] ImpossibleGrid { get; private set; }//Throw in all impossible vals
-        public string[,] mainbackupGrid { get; set; }
-        private int[] SeparateLines = { 0, 3, 6 };
-        private int[] FullInts = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        #region def
+        /// <summary> 
+        /// Main grid
+        /// メイン表
+        /// </summary>
+        public string[,] Grid { get; private set; }
+        /// <summary> 
+        /// Finish flag 
+        /// 終了フラグ。失敗時にfalseに切り替わる
+        /// </summary>
+        public bool FinishFlag { get; private set; }
+        /// <summary> 
+        /// Temporary grid used for holding possible values 
+        /// サブ表
+        /// </summary>
+        public TempBlock[,] TempGrid { get; private set; }
         protected int? singleblockw;
+        /// <summary> 
+        /// All possible values array used for filter out possible values
+        /// 可能の値の配列。不可能値の排除に使う
+        /// </summary>
+        private int[] FullInts = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        /// <summary> 
+        /// For accessing nullable int singleblockw 
+        /// Nullable int singleblockwをアクセスするために。singleblockwがnullならデフォルトの3を返す
+        /// </summary>
         private int SingleBlockWidth
         {
             get { return (singleblockw.HasValue) ? singleblockw.Value : 3; }
             set { singleblockw = value; }
         }
+        /// <summary> 
+        /// Shortcut for getting full grid width since n^2 
+        /// 表のフルサイズを取得するショートカット。表のサイズはSingleBlockWidthのn^2
+        /// </summary>
         private int FullGridWidth
         {
             get { return (SingleBlockWidth * SingleBlockWidth); }
         }
+        /// <summary> 
+        /// Holds the current location 
+        /// 現在地を保持
+        /// </summary>
         private Point Next;
-        private List<Tuple<Point, int, bool, bool>> Logger;
-        private Debug debug;
-
-        public InvalidGridException Error { get; private set; }
-
+        /// <summary> 
+        /// Tracks the filled in location and value while backtrack solving 
+        /// バックトラック時、巻き戻しできるように記録
+        /// </summary>
+        private List<Tuple<Point, int>> Logger;
+        /// <summary> 
+        /// Debugger. Logs data into a txt file. Not used now 
+        /// デバッガという名だけどただPointと値をtxtに書き出すだけのもの。使用しない
+        /// </summary>
+        //private Debug debug;
+        #endregion
+        
         public TreeDiagram(string[,] g, int sbw)
         {
-            debug = new Debug();
-            Grid = g;
+            Grid = g; 
             SingleBlockWidth = sbw;
-            Logger = new List<Tuple<Point, int, bool, bool>>();
-            mainbackupGrid = Grid;
             Initialize();
+
+            //Start from least unfilled block's least possibles
+            //全ブロックから残りマスが一番少ない最初のブロックを選択し、そのブロック内の最初の一番残り可能性が少ないマスから始める
+            Next = GetNextLeastEmptyInInnerBlock(GetLeastEmptyBlock(0, 0)); 
+            //Next = GetNextEmpty();
+
+            //if Next is {-1,-1}, return
+            if (Next.x == -1)
+            {
+                FinishFlag = false; //if fail == true, finishflag means incomplete, 
+                return; //return regardless of succeed or failure
+            }
+            //Preparation before recursion
+            //ループ前に準備
+            TempGrid[Next.x, Next.y].Possibles = GetPossible(Next.x, Next.y, true).ToList();
         }
         private void Initialize()
         {
+            Logger = new List<Tuple<Point, int>>();
+
             //Fullints initialize
-            List<int> ints = new List<int>();
-            for (int i = 1; i <= FullGridWidth; i++)
-            {
-                ints.Add(i);
-            }
-            FullInts = ints.ToArray();
-            ints.Clear();
-
-            //Separate lines initialize
-            for (int i = 0; i < FullGridWidth; i += SingleBlockWidth)
-            {
-                ints.Add(i);
-            }
-            SeparateLines = ints.ToArray();
-
+            FullInts = Enumerable.Range(1, FullGridWidth).ToArray();
             TempGrid = new TempBlock[FullGridWidth, FullGridWidth];
-            ImpossibleGrid = new TempBlock[FullGridWidth, FullGridWidth]; 
             //Tempgrid possible list
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    TempGrid[x, y] = new TempBlock();
-                    ImpossibleGrid[x, y] = new TempBlock();
-                }
-            }
-
             //fill each tempgrid block with possible values
             for (int x = 0; x < FullGridWidth; x++)
             {
                 for (int y = 0; y < FullGridWidth; y++)
                 {
-                    if (Grid[x,y].Equals("x")) TempGrid[x, y].Possibles.AddRange(GetPossible(x, y)); //add possible values
+                    TempGrid[x, y] = new TempBlock(); //initialize
+                    if (Grid[x, y].Equals("x")) TempGrid[x, y].Possibles.AddRange(GetPossible(x, y)); //add possible values
                 }
             }
-            ImpossibleGrid = TempGrid;
         }
-
-        public bool FinishFlag { get; private set; }
-
-        public void ExecuteTry()
+        
+        #region RecursiveTry
+        /// <summary>
+        /// Start backtrack try
+        /// </summary>
+        public void Execute()
         {
-            string[,] backupGrid = Grid;
-            TempBlock[,] backupTemp = TempGrid;
-
-            TempBlock[,] copyTemp = TempGrid;
-            int EmptyCount = GetTotalLeftOver();
-            bool finish = CheckFinish();
-
             try
             {
-                while (!finish)
-            {
-                Next = GetNextEmpty();
-                finish = CheckFinish();            
-                if (!finish)
-                        {
-                        //true
-                        STEP2:
-                            if (Next.x == -1)
-                            {
-                                bool fail = CheckFailure();
-                                FinishFlag = !fail; //if fail == true, finishflag means incomplete, 
-                                return; //return regardless of succeed or failure
-                            }
-                            TempGrid[Next.x, Next.y].Possibles = GetPossible(Next.x, Next.y,true).ToList();
-                        STEP3:
-                            #region Debug
-                            if (TempGrid[Next.x, Next.y].Possibles.Count != 0)
-                            {
-                                //Console.Write(Next.ToString() + ": ");
-                                //TempGrid[Next.x, Next.y].Possibles.ToList().ForEach(a => Console.Write(a + " "));
-                                //Console.WriteLine();
-                                //Console.Write("-----------\n");
-
-                                string debugwrite = Next.ToString();
-                                TempGrid[Next.x, Next.y].Possibles.ToList().ForEach(a => debugwrite += (a + " "));
-                                debug.LoggerWrite(debugwrite);
-                            }
-                            //debug.LoggerWrite("----------");
-                            #endregion
-                            
-                            if (TempGrid[Next.x, Next.y].Possibles.Count == 0)
-                            {
-                            //true  
-                                if (TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Count == 0)
-                                {
-                                    
-                                    Logger.Remove(Logger.Last());
-                                    goto STEP3;        
-                                }
-                                else
-                                {
-                                    TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Remove(Logger.Last().Item2);
-                                    Next = Logger.Last().Item1;//rollback one
-                                    Grid[Next.x, Next.y] = "x";
-                                    #region Debug
-                                    debug.Write(string.Format("Removed: {0}, {1}", Logger.Last().Item1, Logger.Last().Item2));
-                                    string debugout = String.Empty;
-                                    TempGrid[Next.x, Next.y].Possibles.ToList().ForEach(a => debugout += (a.ToString() + " "));
-                                    debug.Write(debugout);
-                                    #endregion
-
-                                    
-                                    Logger.Remove(Logger.Last());
-                                    goto STEP3;
-                                }                    
-                            }
-                            else
-                            {
-                                //false
-                                Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[0].ToString();
-                                Logger.Add(new Tuple<Point, int, bool, bool>(Next, TempGrid[Next.x, Next.y].Possibles[0], CheckFinish(), GetTotalLeftOver() == 0));
-                                
-                                debug.Write(string.Format("Logged: {0}, {1}", Logger.Last().Item1, Logger.Last().Item2));
-                                Next = GetNextEmpty();
-                                goto STEP2;
-                            }
-                        }
-                        else
-                        {
-                            return;
-                        }
-            }
+            STEP0:
+                if (Next.x == -1) 
+                {
+                    FinishFlag = false;
+                    return; //return regardless of succeed or failure
+                }
+                TempGrid[Next.x, Next.y].Possibles = GetPossible(Next.x, Next.y, true).ToList();
+            STEP1:
+                if (TempGrid[Next.x, Next.y].Possibles.Count == 0)
+                {
+                    if (TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Count == 0)
+                    {
+                        Logger.Remove(Logger.Last());
+                        goto STEP1;
+                    }
+                    else
+                    {
+                        TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Remove(Logger.Last().Item2);
+                        Next = Logger.Last().Item1;//rollback one
+                        Grid[Next.x, Next.y] = "x";
+                        Logger.Remove(Logger.Last());
+                        goto STEP1;
+                    }
+                }
+                else
+                {
+                    Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[0].ToString();
+                    Logger.Add(new Tuple<Point, int>(Next, TempGrid[Next.x, Next.y].Possibles[0]));
+                    Next = GetNextEmpty();
+                    goto STEP0;
+                }
             }
             catch (Exception)
             {
-                Error = new InvalidGridException("Grid Invalid");
                 FinishFlag = false;
                 return;
             }
         }
-        private void FillCorrectTemp()
-        {
-            //foreach (Tuple<Point,int,bool,bool> item in Logger)
-            //{
-            //    TempGrid[item.Item1.x, item.Item1.y].Possibles
-            //}
-        }
-        private void RemoveStartFailure()
-        {
-            Tuple<Point, int, bool, bool> first = Logger.FirstOrDefault();
-            if (first == null) return;
-            ImpossibleGrid[first.Item1.x, first.Item1.y].Possibles.Add(first.Item2);
-            TempGrid[first.Item1.x, first.Item1.y].Possibles.Remove(first.Item2);
-            RegenTempGrid();
-            Grid = mainbackupGrid;
-            PrintAll();
-        }
-        private void WithValueTry()
-        {
-            Next = new Point();
-            
-            while (Next.x != -1)
-            {
-                Next = GetNextEmpty(Next.x, Next.y, true);
-                RemoveStartFailure();
-                //if (TryFailure(Next)) { break; }
-                if (TempGrid[Next.x, Next.y].Possibles.Count == 0) { RemoveStartFailure(); continue; }
-                Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[0].ToString();
-                Logger.Add(new Tuple<Point, int, bool, bool>(Next, TempGrid[Next.x, Next.y].Possibles[0], CheckFinish(), GetTotalLeftOver() == 0));
-                TempGrid[Next.x, Next.y].Possibles.RemoveAt(0);
-                
-                PrintAll();
-            }
-        }
-        private bool TryFailure(Point pt)
-        {
-            return ((Grid[pt.x, pt.y].Equals("x")) && (TempGrid[pt.x, pt.y].Possibles.Count != 0));
-        }
-
-        public bool ExecuteTry2()
-        {
-            Basic();
-
-            string[,] backupGrid = Grid; //for reverting back all
-            string[,] loopGrid = Grid;  //for testing each
-            int loopcount = 0;
-            while (!CheckFinish())
-            {
-                Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[0].ToString();
-                
-                if (CheckFinish())
-                {
-                    return true;
-                }
-                else
-                {
-                    ImpossibleGrid[Next.x, Next.y].Possibles.Add(TempGrid[Next.x, Next.y].Possibles[0]); //blacklist the item
-                    Next = GetNextPossible(GetInnerRange(Next.x), GetInnerRange(Next.y));
-
-                }
-
-                if (loopcount >= 3)
-                {
-                    loopcount = 0;//reset
-
-                }
-                if (Grid == loopGrid) loopcount++;
-                loopGrid = Grid;
-
-            }
-
-
-            int loop = 20;
-            int trackloop = 1;
-            int tracker = 0;
-            int count = TempGrid[Next.x, Next.y].Possibles.Count;
-            while (tracker < count)
-	        {
-                Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[tracker].ToString();
-                while (!CheckFinish())
-                {
-                    if (trackloop == loop) { break; }// for manual break
-                    AdvancedFill();
-                    CheckLeftOver2();
-                    trackloop++;
-                    Point nextpoint = GetNextLeastEmptyInInnerBlock(GetLeastEmptyBlock(Next.x, Next.y));
-                    TreeDiagram td = new TreeDiagram(Grid,  SingleBlockWidth);
-                    td.ExecuteTry();
-                }
-                tracker++;
-                trackloop = 0;
-                count = TempGrid[Next.x, Next.y].Possibles.Count;
-	        }
-
-            
-            return (CheckFinish());
-        }
-        private void CheckLeftOver2()
-        {
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    if (TempGrid[x, y].Possibles.Count == 1)
-                    {
-                        List<int> poss = TempGrid[x, y].Possibles;
-                        Grid[x, y] = poss[0].ToString();
-                        CleanTempGrid(x, y);
-                    }
-                }
-            }
-        }
-
-        private void RegenTempGrid()
-        {
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    if (Grid[x, y].Equals("x")) TempGrid[x, y].Possibles = GetPossible(x, y).ToList();
-                }
-            }
-        }
-
         
-        private void Basic()
-        {
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    //HookEventHandler();
-                    if (!Grid[x, y].Equals("x")) continue; //DONT DO ANYTHING IF THE BLOCK IS ALREADY FILLED WITH NUMBER
-                    if (TempGrid[x, y].Possibles.Count == 1) { Grid[x, y] = TempGrid[x, y].Possibles[0].ToString(); CleanTempGrid(x, y); }
-                }
-            }
-        }
-        private void CleanTempGrid(int x, int y)
-        {
-            TempGrid[x, y].Possibles.Clear();
-        }
+        
+        #endregion
+        
+
+
         private bool CheckFinish()
         {
             for (int x = 0; x < FullGridWidth; x++)
@@ -347,80 +186,6 @@ namespace SudokuSolver
         }
 
 
-        #region Advanced
-        /// <summary>
-        /// Call this method only for all Advanced section access
-        /// </summary>
-        private void AdvancedFill(bool clearafter = true)
-        {
-            //Array.Clear(TempGrid, 0, TempGrid.Length); //clear all
-            //ReInitializeTemp();
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    //TempGrid[x, y].Possibles.Clear(); //clear and fill new
-                    //int[] poss = GetPossible(x, y);
-                    //TempGrid[x, y].Possibles.AddRange(poss); //add possible values
-                    if ((SeparateLines.Contains(x)) && (SeparateLines.Contains(y))) //dont repeat in each innerblock
-                    {
-                        AdvancedInBlockCheck(x, y, clearafter);
-                        //AdvancedInBlockCheck2(x, y);
-                        //AdvancedInBlockCheck(x, y);
-                    }
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// Gets inblock possible distinct values
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="includeself"></param>
-        /// <returns></returns>
-        private int[] InBlockPossible(int x, int y, bool includeself = true)
-        {
-            int xpos = GetInnerRange(x);
-            int ypos = GetInnerRange(y);
-            List<int> poss = new List<int>();
-
-            for (int xa = (xpos - SingleBlockWidth); xa < xpos; xa++)
-            {
-                for (int ya = (ypos - SingleBlockWidth); ya < ypos; ya++)
-                {
-                    if ((!includeself) && ((xa == x) && (ya == y))) continue; //skipself
-                    if (!Grid[xa, ya].Equals("x")) continue; //skip filled in
-                    poss.AddRange(GetPossible(xa, ya));
-                }
-            }
-            return poss.Distinct().ToArray();
-        }
-
-        private void AdvancedInBlockCheck(int x, int y, bool clearafter = true)
-        {
-            int xpos = GetInnerRange(x);
-            int ypos = GetInnerRange(y);
-            for (int xa = (xpos - SingleBlockWidth); xa < xpos; xa++)
-            {
-                for (int ya = (ypos - SingleBlockWidth); ya < ypos; ya++)
-                {
-                    if (!Grid[xa, ya].Equals("x")) { if (clearafter) { CleanTempGrid(xa, ya); } continue; }//skip if filled
-                    List<int> inboxexceptselfpossible = InBlockPossible(xa, ya, false).ToList();
-                    var selfpossible = GetPossible(xa, ya);
-                    TempGrid[xa, ya].Possibles = selfpossible.ToList();
-                    var diff = selfpossible.Except(inboxexceptselfpossible).ToList();
-                    if (diff.Count == 1)
-                    {
-                        Grid[xa, ya] = diff[0].ToString();
-                        CleanTempGrid(xa, ya);
-                    }
-                }
-            }
-        }
-
-        #endregion
         #region Impossibles
         public int[] GetInnerBlockRowImpossible(int x, int y, bool includeself = true)
         {
@@ -459,23 +224,6 @@ namespace SudokuSolver
             //return pos.Distinct().Select(int.Parse).ToArray();//remove duplicates, return list as int[]
         }
 
-        public void FillTemp()
-        {
-            //fill each tempgrid block with possible values
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    //Console.Clear();
-                    //foreach (int item in GetPossible(x,y))
-                    //{
-                    //    Console.WriteLine(item);
-                    //}
-                    TempGrid[x, y].Possibles.AddRange(GetPossible(x, y)); //add possible values
-                }
-            }
-
-        }
         /// <summary>
         /// Gets all possible values
         /// </summary>
@@ -616,7 +364,7 @@ namespace SudokuSolver
         }
         #endregion
         #region Get
-        private int PossibleCounter = 0;
+        private int PossibleCounter;
         private Point GetNextPossible(int startx = 0, int starty = 0)
         {
             int xpos = GetInnerRange(startx);
@@ -636,6 +384,34 @@ namespace SudokuSolver
             return new Point();
 
 
+        }
+        private Point GetNextEmpty(int startx = 0, int starty = 0, bool tryloop = false)
+        {
+            for (int i = 0; i < ((tryloop) ? 3 : 1); i++)
+            {
+                for (int x = startx; x < FullGridWidth; x++)
+                {
+                    for (int y = starty; y < FullGridWidth; y++)
+                    {
+                        if (Grid[x, y].Equals("x")) return new Point() { x = x, y = y };
+                    }
+                    starty = 0;
+                }
+                startx = 0;
+            }
+            return new Point() { x = -1, y = -1 };
+        }
+        private int GetTotalLeftOver()
+        {
+            int track = 0;
+            for (int x = 0; x < FullGridWidth; x++)
+            {
+                for (int y = 0; y < FullGridWidth; y++)
+                {
+                    if (Grid[x, y].Equals("x")) track++;
+                }
+            }
+            return track;
         }
         private int least_count = 0;
         private Point GetLeastEmptyBlock(int startx = 0, int starty = 0, int startfrom = -1)
@@ -709,159 +485,6 @@ namespace SudokuSolver
             }
             return new Point() { x = -1, y = -1 };
         }
-        private Point GetNextEmpty(int startx = 0, int starty = 0, bool tryloop = false)
-        {
-            for (int i = 0; i < ((tryloop) ? 3 : 1); i++)
-            {
-                for (int x = startx; x < FullGridWidth; x++)
-                {
-                    for (int y = starty; y < FullGridWidth; y++)
-                    {
-                        if (Grid[x, y].Equals("x")) return new Point() { x = x, y = y };
-                    }
-                    starty = 0;
-                }
-                startx = 0;
-            }
-            return new Point() { x = -1, y = -1 };
-        }
-        private int GetTotalLeftOver()
-        {
-            int track = 0;
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    if (Grid[x, y].Equals("x")) track++;
-                }
-            }
-            return track;
-        }
         #endregion
-
-
-
-        #region Printout
-        private  void PrintHorizontalBorder(bool withnewline = false)
-        {
-            string outstr = string.Empty;
-
-            // | + 532... + x x x
-            int vertical = 1 + SingleBlockWidth + (SingleBlockWidth - 1);
-            if ((FullGridWidth > 9)) vertical += (FullGridWidth / 4);
-            //if grid is greater than 9x9, it means that possible max value is 2-digit, meaning requires double space
-            //for example: 16x16 grid. each block has 4x4 values, each 2-digit. 
-            //because of the 2-digit, it means we need to add double of what we have now.
-            //since each loop adds in 2-values, "- ", it means we don't actually need *2
-            //we only need 1/4 of the FullGridWidth
-
-            int vertical_border = SingleBlockWidth + 1;
-            int total = FullGridWidth + vertical_border;
-
-            for (int i = 0; i < SingleBlockWidth; i++)
-            {
-                for (int a = 0; a < (vertical / 2); a++)
-                {
-                    outstr += "- ";
-                }
-            }
-            outstr += "-";
-            Console.WriteLine("{0}{1}", (withnewline) ? "\n" : string.Empty, outstr);
-        }
-        private  void PrintAllTempStack()
-        {
-            PrintHorizontalBorder(false);
-            for (int i = 0; i < FullGridWidth; i++)
-            {
-                for (int x = 0; x < FullGridWidth; x++)
-                {
-                    if (x % SingleBlockWidth == 0)
-                    {
-                        Console.Write("|");
-                    }
-                    else
-                    {
-                        Console.Write(" ");
-                    }
-                    int count = TempGrid[i, x].Possibles.Count;
-                    Console.Write("{0}{1}", ((FullGridWidth > 9) && (count.ToString().Length == 1)) ? " " : string.Empty, count);
-
-                }
-                Console.Write("|");//EOF border
-                if (((i + 1) % SingleBlockWidth == 0))
-                {
-                    PrintHorizontalBorder(true);
-                }
-                else
-                {
-                    Console.Write("\n");
-                }
-            }
-
-        }
-        private  void PrintAll()
-        {
-            //Console.WriteLine("- - - - - - - - - -");
-            PrintHorizontalBorder();
-            for (int i = 0; i < FullGridWidth; i++)
-            {
-                for (int x = 0; x < FullGridWidth; x++)
-                {
-                    if (x % SingleBlockWidth == 0)
-                    {
-                        Console.Write("|");
-                    }
-                    else
-                    {
-                        Console.Write(" ");
-                    }
-                    string block = Grid[i, x];
-                    Console.Write("{0}{1}", ((FullGridWidth > 9) && (block.Length == 1)) ? " " : string.Empty, block);
-
-                }
-                Console.Write("|");//EOF border
-                if (((i + 1) % SingleBlockWidth == 0))
-                {
-                    PrintHorizontalBorder(true);
-                }
-                else
-                {
-                    Console.Write("\n");
-                }
-            }
-
-        }
-        private  void PrintSpecific(int x, int y)
-        {
-            //Console.Clear();
-            Console.WriteLine("Specific {0},{1}:", x, y);
-            TempGrid[x, y].Possibles.ForEach(new Action<int>(a =>
-            {
-                Console.Write(a + " ");
-            }));
-        }
-        private  void Print3x3(int x, int y)
-        {
-            int xpos = GetInnerRange(x);
-            int ypos = GetInnerRange(y);
-
-            for (int xa = (xpos - SingleBlockWidth); xa < xpos; xa++)
-            {
-                for (int ya = (ypos - SingleBlockWidth); ya < ypos; ya++)
-                {
-                    if (!Grid[xa, ya].Equals("x")) continue; // no need to print out possible values for filled in
-                    int[] poss = GetPossible(xa, ya);
-                    Console.WriteLine(@"[{0},{1}]", xa, ya);
-                    poss.ToList().ForEach(new Action<int>(a =>
-                    {
-                        Console.Write(a + " ");
-                    }));
-                    Console.Write("\n");
-                }
-            }
-            Console.WriteLine();
-        }
-        #endregion
-       
     }
 }

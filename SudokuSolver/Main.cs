@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 /*
  * BY TAIYO KATO
  * LAST BACKUP TIME: 1:50 AM 7/15/2013 -> dropbox, skydrive, SD card
@@ -42,9 +40,20 @@ namespace SudokuSolver
         [STAThread]
         static void Main(string[] args)
         {
+            if (args.Length > 0)
+            {
+                if (args[0].ToLower().Equals("-a"))
+                {
+                    Console.WriteLine(string.Format("SudokuSolver - {0}, by Taiyo Kato", DateTime.Today.Year));
+                    Console.WriteLine("Press enter to finish...");
+                    Console.Read();
+                    System.Environment.Exit(0); //exit
+                }
+            }
             Solver solver = new Solver();
         }
     }
+
     #region Structs
     /// <summary>
     /// Item for TempGrid
@@ -70,34 +79,29 @@ namespace SudokuSolver
     {
         public int x { get; set; }
         public int y { get; set; }
-        /// <summary>
-        /// For debug purposes, overrided the ToString() method
-        /// </summary>
-        /// <returns></returns>
+        /// <summary> Custom ToString() for debug purpose </summary>
+        /// <returns>[x,y]</returns>
         public override string ToString()
         {
             return string.Format("[{0},{1}]", x, y);
         }
-        /// <summary>
-        /// Unsure if the default Equals() method works properly
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <summary> Avoid default Equals() mis-evaluate </summary>
+        /// <param name="obj">Point to evaluate</param>
+        /// <returns>If both x && y are equal</returns>
         public bool Equals(Point obj)
         {
             return ((x.Equals(obj.x)) && (y.Equals(obj.y)));
         }
+        //Not realy needed, but might be useful if operators are available.
+        public static bool operator ==(Point a, Point b)
+        {
+            return a.Equals(b);
+        }
+        public static bool operator !=(Point a, Point b)
+        {
+            return !a.Equals(b);
+        }
+    
     }
     #endregion
-
-    
-    public class InvalidGridException : Exception
-    {
-      public InvalidGridException() { }
-      public InvalidGridException( string message ) : base( message ) { }
-      public InvalidGridException( string message, Exception inner ) : base( message, inner ) { }
-      protected InvalidGridException( 
-	    System.Runtime.Serialization.SerializationInfo info, 
-	    System.Runtime.Serialization.StreamingContext context ) : base( info, context ) { }
-    }
 }
