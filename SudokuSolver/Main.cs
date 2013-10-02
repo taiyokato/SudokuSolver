@@ -32,6 +32,18 @@ using System.Collections.Generic;
  * Edit point:
  * 1. Try catch invalid grids
  * 
+ * EDIT FINISH: 8:36 AM 9/25/2013
+ * Edit point:
+ * 1. Basic (but hard) logical way of solving added
+ * 
+ * EDIT FINISH: 11:51 PM 10/1/2013
+ * Edit point:
+ * 1. Checks for horizontal + vertical row for one empty block leftover, and innerblock leftover
+ * 
+ * EDIT FINISH: 2:15 PM 10/2/2013
+ * Edit point:
+ * 1. Lighter and simplier modification for GetInnerRange();
+ * Overall performance speed up by min. 60%
  */
 namespace SudokuSolver
 {
@@ -73,7 +85,7 @@ namespace SudokuSolver
         }
     }
     /// <summary>
-    /// Object that can hold x & y location
+    /// Object that can hold x&y location
     /// </summary>
     public struct Point
     {

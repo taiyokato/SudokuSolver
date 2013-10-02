@@ -17,6 +17,11 @@ namespace SudokuSolver
         /// 終了フラグ。失敗時にfalseに切り替わる
         /// </summary>
         public bool FinishFlag { get; private set; }
+        /// <summary>
+        /// Measure used when printing out grids
+        /// 表のプリントアウト時に使う測り
+        /// </summary>
+        public int[] SeparateLines = { 0, 3, 6 };
         /// <summary> 
         /// Temporary grid used for holding possible values 
         /// サブ表
@@ -55,11 +60,8 @@ namespace SudokuSolver
         /// バックトラック時、巻き戻しできるように記録
         /// </summary>
         private List<Tuple<Point, int>> Logger;
-        /// <summary> 
-        /// Debugger. Logs data into a txt file. Not used now 
-        /// デバッガという名だけどただPointと値をtxtに書き出すだけのもの。使用しない
-        /// </summary>
-        //private Debug debug;
+
+        private Debug debugger;
         #endregion
         
         public TreeDiagram(string[,] g, int sbw)
@@ -67,7 +69,7 @@ namespace SudokuSolver
             Grid = g; 
             SingleBlockWidth = sbw;
             Initialize();
-
+            debugger = new Debug();
             //Start from least unfilled block's least possibles
             //全ブロックから残りマスが一番少ない最初のブロックを選択し、そのブロック内の最初の一番残り可能性が少ないマスから始める
             Next = GetNextLeastEmptyInInnerBlock(GetLeastEmptyBlock(0, 0)); 
@@ -82,13 +84,18 @@ namespace SudokuSolver
             //Preparation before recursion
             //ループ前に準備
             TempGrid[Next.x, Next.y].Possibles = GetPossible(Next.x, Next.y, true).ToList();
+
         }
         private void Initialize()
         {
             Logger = new List<Tuple<Point, int>>();
-
+            FullInts = new int[FullGridWidth]; //alloc size
             //Fullints initialize
-            FullInts = Enumerable.Range(1, FullGridWidth).ToArray();
+            for (int i = 1; i <= FullGridWidth; i++)
+            {
+                FullInts[i - 1] = i;
+            }
+            //FullInts = Enumerable.Range(1, FullGridWidth).ToArray();
             TempGrid = new TempBlock[FullGridWidth, FullGridWidth];
             //Tempgrid possible list
             //fill each tempgrid block with possible values
@@ -113,11 +120,13 @@ namespace SudokuSolver
             STEP0:
                 if (Next.x == -1) 
                 {
-                    FinishFlag = false;
+                    bool finished = CheckFinish();
+                    FinishFlag = finished;
                     return; //return regardless of succeed or failure
                 }
                 TempGrid[Next.x, Next.y].Possibles = GetPossible(Next.x, Next.y, true).ToList();
             STEP1:
+                //debugger.Write(Next.ToString());
                 if (TempGrid[Next.x, Next.y].Possibles.Count == 0)
                 {
                     if (TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Count == 0)
@@ -142,14 +151,12 @@ namespace SudokuSolver
                     goto STEP0;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 FinishFlag = false;
                 return;
             }
         }
-        
-        
         #endregion
         
 
@@ -160,10 +167,7 @@ namespace SudokuSolver
             {
                 for (int y = 0; y < FullGridWidth; y++)
                 {
-                    bool gridcheck = Grid[x, y].Equals("x");
-                    bool tempcheck = TempGrid[x, y].Possibles.Count != 0;
-
-                    if ((gridcheck || tempcheck) || (gridcheck && tempcheck)) return false;
+                    if (Grid[x, y].Equals("x")) return false;
                 }
             }
             return true;
@@ -239,23 +243,37 @@ namespace SudokuSolver
 
         public int GetInnerRange(int loc)
         {
-            List<int[]> RangeList = new List<int[]>();
-            List<int> tmplst = new List<int>();
-
-            int next = 0;
-            for (int i = 0; i < SingleBlockWidth; i++)
+            for (int i = SingleBlockWidth; i <= (FullGridWidth); i += SingleBlockWidth)
             {
-                for (int x = next; x < (next + SingleBlockWidth); x++)
+                if (loc <= i - 1)
                 {
-                    tmplst.Add(x);
+                    return i;
                 }
-                next += SingleBlockWidth;
-                RangeList.Add(tmplst.ToArray());
-                tmplst.Clear();
             }
-            int index = RangeList.FindIndex(a => a.Contains(loc)); //return the section's last item index (1~)
-            int indexcalc = ((index * SingleBlockWidth) + SingleBlockWidth);
-            return indexcalc;
+            return 0;
+
+            #region Previous Code
+            //code below works, but code above works faster and is simplier
+
+            //List<int[]> RangeList = new List<int[]>();
+            //List<int> tmplst = new List<int>();
+
+            //int next = 0;
+            //for (int i = 0; i < SingleBlockWidth; i++)
+            //{
+            //    for (int x = next; x < (next + SingleBlockWidth); x++)
+            //    {
+            //        tmplst.Add(x);
+            //    }
+            //    next += SingleBlockWidth;
+            //    RangeList.Add(tmplst.ToArray());
+            //    tmplst.Clear();
+            //}
+            //int index = RangeList.FindIndex(a => a.Contains(loc)); //return the section's last item index (1~)
+            //int indexcalc = ((index * SingleBlockWidth) + SingleBlockWidth);
+            //return indexcalc;
+            #endregion
+
 
             #region Previous code
             //Print out
