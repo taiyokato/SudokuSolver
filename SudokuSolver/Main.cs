@@ -44,6 +44,15 @@ using System.Collections.Generic;
  * Edit point:
  * 1. Lighter and simplier modification for GetInnerRange();
  * Overall performance speed up by min. 60%
+ *
+ * EDIT FINISH: 9:15 PM 10/6/2013
+ * Edit point: 
+ * 1. Removed confirmed unused methods
+ * 2. Less loopings and checked for unnecessary looping duplication
+ *
+ * EDIT FINISH: 7:43 AM 11/8/2013
+ * Edit point:
+ * 1. Faster solving by removing most List<T> uses and fewer List<T> accesses
  */
 namespace SudokuSolver
 {
@@ -52,11 +61,12 @@ namespace SudokuSolver
         [STAThread]
         static void Main(string[] args)
         {
+            
             if (args.Length > 0)
             {
                 if (args[0].ToLower().Equals("-a"))
                 {
-                    Console.WriteLine(string.Format("SudokuSolver - {0}, by Taiyo Kato", DateTime.Today.Year));
+                    Console.WriteLine(string.Format("SudokuSolver - (c) {0}, by Taiyo Kato", DateTime.Today.Year));
                     Console.WriteLine("Press enter to finish...");
                     Console.Read();
                     System.Environment.Exit(0); //exit
@@ -68,29 +78,12 @@ namespace SudokuSolver
 
     #region Structs
     /// <summary>
-    /// Item for TempGrid
-    /// </summary>
-    public class TempBlock
-    {
-        /// <summary>
-        /// Container for possible values in this block
-        /// </summary>
-        public List<int> Possibles { get; set; }
-        /// <summary>
-        /// Initialize Possibles list
-        /// </summary>
-        public TempBlock()
-        {
-            Possibles = new List<int>();
-        }
-    }
-    /// <summary>
     /// Object that can hold x&y location
     /// </summary>
     public struct Point
     {
         public int x { get; set; }
-        public int y { get; set; }
+        public int y { get; set; }        
         /// <summary> Custom ToString() for debug purpose </summary>
         /// <returns>[x,y]</returns>
         public override string ToString()
