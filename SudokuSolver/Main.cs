@@ -3,13 +3,10 @@ using System.Collections.Generic;
 
 /*
  * BY TAIYO KATO
- * LAST BACKUP TIME: 1:50 AM 7/15/2013 -> dropbox, skydrive, SD card
+ *
+ * VER 1.0.0.9
  * 
- * TODO:
- * WHEN THERE ARE STILL UNSOLVABLE BLOCKS, USE TREEDIAGRAM TO SEARCH FOR POSSIBLE ANSWERS.
- * 
- * 
- * FINISHED: 12:59 AM 7/14/2013
+ * ALPHA VERSION FINISHED: 12:59 AM 7/14/2013
  * 
  * EDIT FINISH: 12:48 AM 7/15/2013
  * Edit point:
@@ -21,7 +18,6 @@ using System.Collections.Generic;
  * 1. Bug fix for compatibility for 4x4, 9x9, 16x16... so on
  * 2. Allow 'x' only for unknown values
  * 3. Separate each value with a space. Compatibility for higher than 9x9 ones. (since values will be 1-16, which is double digit. Cannot use foreach(char) anymore)
- * 
  * 
  * EDIT FINISH: 2:23 AM 7/25/2013
  * Edit point:
@@ -49,10 +45,11 @@ using System.Collections.Generic;
  * Edit point: 
  * 1. Removed confirmed unused methods
  * 2. Less loopings and checked for unnecessary looping duplication
- *
- * EDIT FINISH: 7:43 AM 11/8/2013
+ * 
+ * EDIT FINISH: 11:09 PM 11/20/2013
  * Edit point:
- * 1. Faster solving by removing most List<T> uses and fewer List<T> accesses
+ * 1. Minor fix on inner block remaining value checks
+ * 2. Fixed bug that FillTemp2() will fill in x with overlapping values
  */
 namespace SudokuSolver
 {

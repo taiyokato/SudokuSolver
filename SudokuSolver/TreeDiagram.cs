@@ -73,19 +73,15 @@ namespace SudokuSolver
             Grid = g; 
             SingleBlockWidth = sbw;
             FullInts = fullints;
-             //PossiblesGrid= new int[FullGridWidth, FullGridWidth][];
             TempGrid = tempgrid;
-             UnfilledCount = unfilled;
+            UnfilledCount = unfilled;
              
-            //long start = DateTime.Now.Ticks;
             Initialize();
-            //Console.WriteLine(DateTime.Now.Ticks - start);
             
             //debugger = new Debug();
             //Start from least unfilled block's least possibles
             //全ブロックから残りマスが一番少ない最初のブロックを選択し、そのブロック内の最初の一番残り可能性が少ないマスから始める
-
-            Next = GetLeastEmptyBlock();//GetNextLeastEmptyInInnerBlock(GetLeastEmptyBlock(0, 0));
+            Next = GetNextLeastEmptyInInnerBlock(GetLeastEmptyBlock(0, 0)); //GetLeastEmptyBlock();
             //PossiblesGrid[Next.x, Next.y] = GetPossible(Next.x, Next.y, true);
             //Previous = Next;
             //if Next is {-1,-1}, return
@@ -207,8 +203,8 @@ namespace SudokuSolver
                     }
                     else
                     {
-                        
-                        TempGrid[pt.x,pt.y] = TempGrid[pt.x,pt.y].Skip(1).ToArray();
+                        TempGrid[pt.x, pt.y] = PopFirst(TempGrid[pt.x, pt.y]).ToArray();
+                        //TempGrid[pt.x,pt.y] = TempGrid[pt.x,pt.y].Skip(1).ToArray();
                         //TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Remove(Logger.Last().Item2);
                         Next = pt;//Logger.Last().Item1;//rollback one
                         Grid[Next.x, Next.y] = "x";
@@ -233,6 +229,13 @@ namespace SudokuSolver
                 FinishFlag = false;
                 //debugger.Finish();
                 return;
+            }
+        }
+        private IEnumerable<int> PopFirst(int[] l)
+        {
+            for (int i = 1; i < l.Length; i++)
+            {
+                yield return l[i];
             }
         }
         /// <summary>
@@ -427,17 +430,7 @@ namespace SudokuSolver
             }
             return true;
         }
-        private void GetFilledCount()
-        {
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    if (Grid[x, y].Equals("x")) UnfilledCount++;
-                }
-            }
-        }
-
+        
         #region Impossibles
         /// <summary>
         /// Gets all possible values
@@ -447,10 +440,10 @@ namespace SudokuSolver
         /// <returns></returns>
         public int[] GetPossible(int x, int y, bool notincludeself = false)
         {
-            //List<int> impossiblevals = 
-            int[] impossiblevals = GetInnerBlock(x, y, notincludeself).Concat(GetRowImpossible(x, y)).ToArray();
-            //impossiblevals = impossiblevals.Distinct().ToList(); //remove duplicate
-            return FullInts.Except(impossiblevals.Distinct()).ToArray(); //returns possible values
+            IEnumerable<int> impossiblevals = GetInnerBlock(x, y, notincludeself).Concat(GetRowImpossible(x, y));
+            return FullInts.Except(impossiblevals).ToArray();
+            //HashSet<int> impossiblevals = new HashSet<int>(GetInnerBlock(x, y, notincludeself).Concat(GetRowImpossible(x, y)));
+            //return FullInts.Except(impossiblevals).ToArray(); //FullInts.Except(impossiblevals.Distinct()).ToArray(); //returns possible values
         }
 
         private int GetInnerRange(int loc)
@@ -537,7 +530,6 @@ namespace SudokuSolver
             //List<int> pos = new List<int>();
             //List<string> pos = new List<string>();
             int[] pos = new int[FullGridWidth];//items should be less than FullGridWidth
-            int num = -1;
             int pointer = 0;
 
 
@@ -601,7 +593,7 @@ namespace SudokuSolver
         #region Get
         private Point GetNextEmpty(int startx = 0, int starty = 0, bool tryloop = false)
         {
-            for (int i = 0; i < ((tryloop) ? 3 : 1); i++)
+            for (int i = 0; i < ((tryloop) ? 2 : 1); i++)
             {
                 for (int x = startx; x < FullGridWidth; x++)
                 {
@@ -617,10 +609,6 @@ namespace SudokuSolver
         }
         private Point GetLeastEmptyBlock(int startx = 0, int starty = 0, int startfrom = -1)
         {
-            //<KeyvaluePair<Bigblock axis, Possible location count>, possible count>
-            //List<KeyValuePair<KeyValuePair<Point, int>, int>> tracker = new List<KeyValuePair<KeyValuePair<Point, int>, int>>();
-            //List<KeyValuePair<Point, int>> tracker = new List<KeyValuePair<Point, int>>();
-
             int least_poscount = FullGridWidth;
             //Point least_loc = new Point();// { x = -1, y = -1 };
             Point innerleast = new Point();
@@ -630,8 +618,6 @@ namespace SudokuSolver
             int prev_possiblesum = (FullGridWidth * FullGridWidth);
             bool innerflag = true;
 
-            //long start = DateTime.Now.Ticks;
-            //this one takes 0 ticks
             for (int x = startx; x < FullGridWidth; x += SingleBlockWidth)
             {
                 for (int y = starty; y < FullGridWidth; y += SingleBlockWidth)
@@ -655,7 +641,6 @@ namespace SudokuSolver
                     {
                         prev_possiblesum = possiblesum;
                         least_poscount = count;
-                        //least_loc = new Point() { x = (xpos - SingleBlockWidth), y = (ypos - SingleBlockWidth) };
                         finalinnerleast = innerleast;
                     }                    
                 }
