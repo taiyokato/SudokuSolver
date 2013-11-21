@@ -27,7 +27,6 @@ namespace SudokuSolver
         /// サブ表
         /// </summary>
         public int[,][] TempGrid;
-        //public TempBlock[,] TempGrid { get; private set; }
         protected int? singleblockw;
         /// <summary> 
         /// All possible values array used for filter out possible values
@@ -60,7 +59,7 @@ namespace SudokuSolver
         /// Tracks the filled in location and value while backtrack solving 
         /// バックトラック時、巻き戻しできるように記録
         /// </summary>
-        private List<Tuple<Point, int>> Logger;
+        private Stack<LogItem> Logger;
         /// <summary>
         /// Tracks amount of unfilled blocks in the grid. Faster than looping to check unfilled block each time Next.x == -1 (probab)
         /// </summary>
@@ -74,6 +73,7 @@ namespace SudokuSolver
             SingleBlockWidth = sbw;
             FullInts = fullints;
             TempGrid = tempgrid;
+            //ConvertFromIntArray(tempgrid, TempGrid);
             UnfilledCount = unfilled;
              
             Initialize();
@@ -95,10 +95,23 @@ namespace SudokuSolver
             TempGrid[Next.x, Next.y] = GetPossible(Next.x, Next.y, true);
 
         }
+        private void ConvertFromIntArray(int[,][] arr, Queue<int>[,] tmp)
+        {
+            for (int x = 0; x < FullGridWidth; x++)
+            {
+                for (int y = 0; y < FullGridWidth; y++)
+                {
+                    if (Grid[x, y].Equals("x"))
+                    {
+                         tmp[x, y] = new Queue<int>(arr[x, y]);
+                    }
+                }
+            }
+        }
         private void Initialize()
         {
             //GetFilledCount();
-            Logger = new List<Tuple<Point, int>>();
+            Logger = new Stack<LogItem>(); //new List<Tuple<Point, int>>();
             //FullInts = new int[FullGridWidth]; //alloc size
             //Fullints initialize
             //for (int i = 0; i < FullGridWidth; i++)
@@ -145,25 +158,25 @@ namespace SudokuSolver
                 //debugger.Write(Next.ToString());
                 if (TempGrid[Next.x, Next.y].Length == 0)
                 {
-                    if (TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Length == 0)
+                    if (TempGrid[Logger.Last().Point.x, Logger.Last().Point.y].Length == 0)
                     {
-                        Logger.Remove(Logger.Last());
+                        Logger.Pop();
                         goto STEP1;
                     }
                     else
                     {
-                        TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y] = TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Skip(0).ToArray();
-                        //TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Remove(Logger.Last().Item2);
-                        Next = Logger.Last().Item1;//rollback one
+                        //TempGrid[Logger.Last().Point.x, Logger.Last().Point.y] = TempGrid[Logger.Last().Point.x, Logger.Last().Point.y].Skip(0).ToArray();
+                        //TempGrid[Logger.Last().Point.x, Logger.Last().Point.y].Possibles.Remove(Logger.Last().Item2);
+                        Next = Logger.Last().Point;//rollback one
                         Grid[Next.x, Next.y] = "x";
-                        Logger.Remove(Logger.Last());
+                        Logger.Pop();
                         goto STEP1;
                     }
                 }
                 else
                 {
-                    Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y][0].ToString();
-                    Logger.Add(new Tuple<Point, int>(Next, TempGrid[Next.x, Next.y][0]));
+                    Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y][0].ToString();// [0].ToString();
+                    Logger.Push(new LogItem(Next, TempGrid[Next.x, Next.y][0]));
                     Next = GetNextEmpty();
                     goto STEP0;
                 }
@@ -175,6 +188,9 @@ namespace SudokuSolver
                 return;
             }
         }
+        /// <summary>
+        /// Currently best solution
+        /// </summary>
         public void Execute2()
         {
             try
@@ -192,33 +208,33 @@ namespace SudokuSolver
             STEP1:
                 //debugger.Write(Next.ToString());
                 if (TempGrid[Next.x, Next.y].Length==0)
-                //if (TempGrid[Next.x, Next.y].Possibles.Count == 0)
+                //if (TempGrid[Next.x, Next.y].Possibles.Length == 0)
                 {
-                    Point pt = Logger.Last().Item1;
+                    Point pt = Logger.Peek().Point;
                     if (TempGrid[pt.x,pt.y].Length == 0)
-                    //if (TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Count == 0)
+                    //if (TempGrid[Logger.Last().Point.x, Logger.Last().Point.y].Possibles.Length == 0)
                     {
-                        Logger.Remove(Logger.Last());
+                        Logger.Pop();
                         goto STEP1;
                     }
                     else
                     {
                         TempGrid[pt.x, pt.y] = PopFirst(TempGrid[pt.x, pt.y]).ToArray();
                         //TempGrid[pt.x,pt.y] = TempGrid[pt.x,pt.y].Skip(1).ToArray();
-                        //TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Remove(Logger.Last().Item2);
-                        Next = pt;//Logger.Last().Item1;//rollback one
+                        //TempGrid[Logger.Last().Point.x, Logger.Last().Point.y].Possibles.Remove(Logger.Last().Item2);
+                        Next = pt;//Logger.Last().Point;//rollback one
                         Grid[Next.x, Next.y] = "x";
                         UnfilledCount++;
-                        Logger.Remove(Logger.Last());
+                        Logger.Pop();
                         goto STEP1;
                     }
                 }
                 else
                 {
-                    Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y][0].ToString();
+                    Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y][0].ToString(); //[0].ToString();
                     UnfilledCount--;
                     //Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[0].ToString();
-                    Logger.Add(new Tuple<Point, int>(Next, TempGrid[Next.x, Next.y][0]));
+                    Logger.Push(new LogItem(Next, TempGrid[Next.x, Next.y][0]));
                     //Logger.Add(new Tuple<Point, int>(Next, TempGrid[Next.x, Next.y].Possibles[0]));
                     Next = GetNextEmpty(Next.x, Next.y, true);
                     goto STEP0;
@@ -260,25 +276,25 @@ namespace SudokuSolver
                 }
                 if (!failed) PossiblesGrid[Next.x, Next.y] = GetPossible(Next.x, Next.y, true);
                 if (PossiblesGrid[Next.x, Next.y].Length == 0)
-                //if (TempGrid[Next.x, Next.y].Possibles.Count == 0)
+                //if (TempGrid[Next.x, Next.y].Possibles.Length == 0)
                 {
-                    if (PossiblesGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Length == 0)
-                    //if (TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Count == 0)
+                    if (PossiblesGrid[Logger.Last().Point.x, Logger.Last().Point.y].Length == 0)
+                    //if (TempGrid[Logger.Last().Point.x, Logger.Last().Point.y].Possibles.Length == 0)
                     {
-                        Logger.Remove(Logger.Last());
-                        Next = Logger.Last().Item1;//rollback one
+                        Logger.Pop();
+                        Next = Logger.Last().Point;//rollback one
                         //Console.Clear();
                         //PrintAll();
                         return Execute3(true);
                     }
                     else
                     {
-                        PossiblesGrid[Logger.Last().Item1.x, Logger.Last().Item1.y] = PossiblesGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Skip(1).ToArray();
-                        //TempGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Possibles.Remove(Logger.Last().Item2);
+                        PossiblesGrid[Logger.Last().Point.x, Logger.Last().Point.y] = PossiblesGrid[Logger.Last().Point.x, Logger.Last().Point.y].Skip(1).ToArray();
+                        //TempGrid[Logger.Last().Point.x, Logger.Last().Point.y].Possibles.Remove(Logger.Last().Item2);
                         Grid[Next.x, Next.y] = "x";
-                        Next = Logger.Last().Item1;//rollback one
+                        Next = Logger.Last().Point;//rollback one
                         UnfilledCount++;
-                        Logger.Remove(Logger.Last());
+                        Logger.Pop();
                         //PossiblesGrid[Next.x, Next.y] = GetPossible(Next.x, Next.y, true);
                         //Console.Clear();
                         //PrintAll();
@@ -290,7 +306,7 @@ namespace SudokuSolver
                     Grid[Next.x, Next.y] = PossiblesGrid[Next.x, Next.y][0].ToString();
                     UnfilledCount--;
                     //Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[0].ToString();
-                    Logger.Add(new Tuple<Point, int>(Next, PossiblesGrid[Next.x, Next.y][0]));
+                    Logger.Push(new LogItem(Next, TempGrid[Next.x, Next.y][0]));
                     //Logger.Add(new Tuple<Point, int>(Next, TempGrid[Next.x, Next.y].Possibles[0]));
                     Next = GetNextEmpty();
                 }
@@ -308,7 +324,7 @@ namespace SudokuSolver
             return true;
         }
         /// <summary>
-        /// Slow.
+        /// Slow. Depreciated
         /// </summary>
         public void Execute4()
 		{
@@ -324,19 +340,19 @@ namespace SudokuSolver
 				if (getnewpos) PossiblesGrid[Next.x, Next.y] = GetPossible(Next.x, Next.y, true);
 				if (PossiblesGrid[Next.x, Next.y].Length==0)
 				{
-					if (PossiblesGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Length == 0)
+					if (PossiblesGrid[Logger.Last().Point.x, Logger.Last().Point.y].Length == 0)
 					{
-						Logger.Remove(Logger.Last());
+                        Logger.Pop();
                         getnewpos = false;
 						continue;
 					}
 					else
 					{
-						PossiblesGrid[Logger.Last().Item1.x, Logger.Last().Item1.y] = PossiblesGrid[Logger.Last().Item1.x, Logger.Last().Item1.y].Skip(1).ToArray();
-						Next = Logger.Last().Item1;
+						PossiblesGrid[Logger.Last().Point.x, Logger.Last().Point.y] = PossiblesGrid[Logger.Last().Point.x, Logger.Last().Point.y].Skip(1).ToArray();
+						Next = Logger.Last().Point;
 						Grid[Next.x, Next.y] = "x";
 						UnfilledCount++;
-						Logger.Remove(Logger.Last());
+                        Logger.Pop();
                         getnewpos = false;
 						continue;
 					}
@@ -346,7 +362,7 @@ namespace SudokuSolver
                     Grid[Next.x, Next.y] = PossiblesGrid[Next.x, Next.y][0].ToString();
                     UnfilledCount--;
                     //Grid[Next.x, Next.y] = TempGrid[Next.x, Next.y].Possibles[0].ToString();
-                    Logger.Add(new Tuple<Point, int>(Next, PossiblesGrid[Next.x, Next.y][0]));
+                    Logger.Push(new LogItem(Next, TempGrid[Next.x, Next.y][0])); ;
                     //Logger.Add(new Tuple<Point, int>(Next, TempGrid[Next.x, Next.y].Possibles[0]));
                     Next = GetNextEmpty();
                     getnewpos = true;
@@ -630,7 +646,7 @@ namespace SudokuSolver
                     {
                         for (int ya = (ypos - SingleBlockWidth); ya < ypos; ya++)
                         {
-                            if (TempGrid[xa, ya].Length> 0) { count++; possiblesum += TempGrid[xa, ya].Length; }
+                            if (TempGrid[xa, ya].Length > 0) { count++; possiblesum += TempGrid[xa, ya].Length; }
                             if ((innerflag) && (Grid[xa, ya].Equals("x"))) { innerleast = new Point() { x = xa, y = ya }; innerflag = false; }
                         }
                     }
@@ -662,7 +678,7 @@ namespace SudokuSolver
                     {
                         for (int ya = (ypos - SingleBlockWidth); ya < ypos; ya++)
                         {
-                            if (TempGrid[xa, ya].Possibles.Count > 0) { count++; possiblesum += TempGrid[xa, ya].Possibles.Count; }
+                            if (TempGrid[xa, ya].Possibles.Length > 0) { count++; possiblesum += TempGrid[xa, ya].Possibles.Length; }
                         }
                     }
                     if (count <= leastcount)
@@ -692,7 +708,7 @@ namespace SudokuSolver
             }
             Console.WriteLine(DateTime.Now.Ticks - start);
             least_count = leastcount;
-            Point nextmin = (tracker.Count == 0) ? new Point() : tracker.Reverse<KeyValuePair<KeyValuePair<Point, int>, int>>().Aggregate((p, n) => ((p.Key.Value < n.Key.Value) && (p.Value < n.Value)) ? p : n).Key.Key;
+            Point nextmin = (tracker.Length == 0) ? new Point() : tracker.Reverse<KeyValuePair<KeyValuePair<Point, int>, int>>().Aggregate((p, n) => ((p.Key.Value < n.Key.Value) && (p.Value < n.Value)) ? p : n).Key.Key;
             return nextmin; //*/
             //Point nextmin = tracker.Reverse<KeyValuePair<Point, int>>().Aggregate((p, n) => p.Value < n.Value ? p : n).Key;
             //Aggregate function searches all the way until last item, and we are looking for the first item that matches.

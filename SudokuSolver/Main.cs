@@ -4,7 +4,7 @@ using System.Collections.Generic;
 /*
  * BY TAIYO KATO
  *
- * VER 1.0.0.9
+ * VER 1.0.1.0
  * 
  * ALPHA VERSION FINISHED: 12:59 AM 7/14/2013
  * 
@@ -50,6 +50,10 @@ using System.Collections.Generic;
  * Edit point:
  * 1. Minor fix on inner block remaining value checks
  * 2. Fixed bug that FillTemp2() will fill in x with overlapping values
+ * 
+ * EDIT FINISH: 6:23 PM 11/21/2013
+ * Edit point:
+ * 1. Replaced List<Tuple<Point,int>> Logger with Stack<LogItem>, where LogItem is a custom struct.
  */
 namespace SudokuSolver
 {
@@ -104,6 +108,16 @@ namespace SudokuSolver
             return !a.Equals(b);
         }
     
+    }
+    public struct LogItem
+    {
+        public Point Point;
+        public int Value;
+        public LogItem(Point p, int v)
+        {
+            Point = p;
+            Value = v;
+        }
     }
     #endregion
 }
