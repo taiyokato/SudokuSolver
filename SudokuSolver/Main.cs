@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
+
 /*
  * BY TAIYO KATO
  *
- * VER 1.0.1.0
+ * VER 1.0.1.1
  * 
  * ALPHA VERSION FINISHED: 12:59 AM 7/14/2013
  * 
@@ -54,6 +55,13 @@ using System.Collections.Generic;
  * EDIT FINISH: 6:23 PM 11/21/2013
  * Edit point:
  * 1. Replaced List<Tuple<Point,int>> Logger with Stack<LogItem>, where LogItem is a custom struct.
+ * 
+ * EDIT FINISH: 11:21 PM 11/25/2013
+ * Edit point:
+ * 1. Changed TreeDiagram constructor to WITHOUT UnfilledCount
+ * 2. Changed Execute2() to Execute2(ref UnfilledCount) to replace old TreeDiagram constructor
+ * 3. Big improvement with location-possibility evaluation inside CheckHVLeftOver(). Faster and smarter.
+ * 4. Added Validator to check grid genuineness
  */
 namespace SudokuSolver
 {
@@ -62,7 +70,6 @@ namespace SudokuSolver
         [STAThread]
         static void Main(string[] args)
         {
-            
             if (args.Length > 0)
             {
                 if (args[0].ToLower().Equals("-a"))
@@ -73,6 +80,11 @@ namespace SudokuSolver
                     System.Environment.Exit(0); //exit
                 }
             }
+            //Console.BufferWidth = Console.LargestWindowWidth;
+            //Console.WindowWidth = Console.LargestWindowWidth;
+            //Console.WindowHeight = Console.LargestWindowHeight;
+            Console.Clear();
+
             Solver solver = new Solver();
         }
     }
@@ -83,8 +95,32 @@ namespace SudokuSolver
     /// </summary>
     public struct Point
     {
-        public int x { get; set; }
-        public int y { get; set; }        
+        private int? _x;
+        private int? _y;
+        public int x
+        {
+            get { return (_x.HasValue) ? _x.Value : -1; }
+            set { _x = value; }
+        }
+        public int y
+        {
+            get { return (_y.HasValue) ? _y.Value : -1; }
+            set { _y = value; }
+        }
+        
+        public Point(int X, int Y) : this()
+        {
+            x = X;
+            y = Y;
+        }
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj);
+        }
+        public override int GetHashCode()
+        {
+            return this.GetHashCode();
+        }
         /// <summary> Custom ToString() for debug purpose </summary>
         /// <returns>[x,y]</returns>
         public override string ToString()
@@ -107,7 +143,10 @@ namespace SudokuSolver
         {
             return !a.Equals(b);
         }
-    
+        public static Point NullObject
+        {
+            get { return new Point(-1, -1); }
+        }
     }
     public struct LogItem
     {
@@ -117,6 +156,16 @@ namespace SudokuSolver
         {
             Point = p;
             Value = v;
+        }
+    }
+    public struct HVItem
+    {
+        public Point Point;
+        public Queue<int> Nums;
+        public HVItem(Point p, params int[] nums)
+        {
+            Point = p;
+            Nums = new Queue<int>(nums);
         }
     }
     #endregion
