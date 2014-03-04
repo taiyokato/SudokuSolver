@@ -145,6 +145,7 @@ namespace SudokuSolver
             {
                 for (int y = 0; y < FullGridWidth; y++)
                 {
+                    if (grid[x, y] == -1) continue;
                     InRow.Add(grid[x, y]);
                 }
                 if (InRow.Count != FullGridWidth)

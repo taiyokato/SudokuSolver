@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /*
  * BY TAIYO KATO
  *
- * VER 1.0.1.1
+ * VER 1.0.1.2
  * 
  * ALPHA VERSION FINISHED: 12:59 AM 7/14/2013
  * 
@@ -113,14 +113,8 @@ namespace SudokuSolver
             x = X;
             y = Y;
         }
-        public override bool Equals(object obj)
-        {
-            return this.Equals(obj);
-        }
-        public override int GetHashCode()
-        {
-            return this.GetHashCode();
-        }
+        
+        
         /// <summary> Custom ToString() for debug purpose </summary>
         /// <returns>[x,y]</returns>
         public override string ToString()
