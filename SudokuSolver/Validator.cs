@@ -116,15 +116,16 @@ namespace SudokuSolver
                     if (item == 0) { continue; }
                     counts[item-1]++;
                 }
-                foreach (int item in counts)
+                for (int i = 0; i < FullGridWidth; i++)
                 {
-                    if (item > 1)
+                    if (counts[i] > 1)
                     {
                         BreakedAt = x;
                         return false;
                     }
+                    counts[i] = 0;
                 }
-                counts = new int[fgw];
+                //counts = new int[fgw];
             }
             return true;
         }
@@ -145,7 +146,7 @@ namespace SudokuSolver
             {
                 for (int y = 0; y < FullGridWidth; y++)
                 {
-                    if (grid[x, y] == -1) continue;
+                    if (grid[x, y] == 0) continue;
                     InRow.Add(grid[x, y]);
                 }
                 if (InRow.Count != FullGridWidth)
@@ -153,13 +154,39 @@ namespace SudokuSolver
                     BreakedAt = x;
                     goto END;
                 }
+                InRow.Clear();//resetB
             }
             Success = true;
         END:
             result = Success;
             return true;
         }
-        
+
+        /// <summary>
+        /// Final validation. Checks for all values filled in once
+        /// </summary>
+        /// <param name="grid">Grid</param>
+        /// <returns>Success or fail</returns>
+        public bool FinalValidate(ref int[,] grid, int fgw)
+        {
+            ushort[] row = new ushort[fgw];
+
+            for (int l = 0; l < fgw; l++)
+            {
+                for (int a = 0; a < fgw; a++)
+                {
+                    if (grid[l, a] == 0) continue;
+                    row[grid[l, a]-1]++;
+                }
+                for (int i = 0; i < row.Length; i++)
+                {
+                    if (row[i] != 1) return false;//more than 1, less than 1 -> false
+                    row[i] = 0; //reset as well
+                }
+            }
+            return true;
+        }
+
         /// <summary>
         /// Obtain the total sum of one line for the grid
         /// </summary>

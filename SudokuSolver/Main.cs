@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /*
  * BY TAIYO KATO
  *
- * VER 1.0.1.2
+ * VER 1.0.1.3
  * 
  * ALPHA VERSION FINISHED: 12:59 AM 7/14/2013
  * 
@@ -79,6 +79,9 @@ namespace SudokuSolver
                     Console.Read();
                     System.Environment.Exit(0); //exit
                 }
+                Reader.ReadFromFile(args[0]);
+                new Solver(true);
+                return;
             }
             //Console.BufferWidth = Console.LargestWindowWidth;
             //Console.WindowWidth = Console.LargestWindowWidth;
@@ -126,7 +129,7 @@ namespace SudokuSolver
         /// <returns>If both x && y are equal</returns>
         public bool Equals(Point obj)
         {
-            return ((x.Equals(obj.x)) && (y.Equals(obj.y)));
+            return ((x == obj.x) && (y == obj.y));
         }
         //Not realy needed, but might be useful if operators are available.
         public static bool operator ==(Point a, Point b)
@@ -137,7 +140,15 @@ namespace SudokuSolver
         {
             return !a.Equals(b);
         }
-        public static Point NullObject
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+        public static Point Null
         {
             get { return new Point(-1, -1); }
         }
@@ -151,16 +162,17 @@ namespace SudokuSolver
             Point = p;
             Value = v;
         }
-    }
-    public struct HVItem
-    {
-        public Point Point;
-        public Queue<int> Nums;
-        public HVItem(Point p, params int[] nums)
+
+        public override string ToString()
         {
-            Point = p;
-            Nums = new Queue<int>(nums);
+            return string.Format("{0} - {1}", Point, Value);
         }
+    }
+    public enum Axis
+    {
+        HORIZONTAL,
+        VERTICAL,
+        NEITHER
     }
     #endregion
 }

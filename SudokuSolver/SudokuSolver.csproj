@@ -74,9 +74,13 @@
     <None Include="FlowerSearch.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reader.cs" />
     <Compile Include="Solver2.cs" />
+    <None Include="SolverStorage.cs" />
+    <Compile Include="Solver_Prototype.cs" />
     <Compile Include="TreeDiagram.cs" />
     <Compile Include="Solver.cs" />
+    <None Include="Unused.cs" />
     <Compile Include="Validator.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -107,6 +111,14 @@
     <Content Include="Todo.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
