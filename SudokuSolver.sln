@@ -1,7 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SudokuSolver", "SudokuSolver\SudokuSolver.csproj", "{6ABD7F14-CC29-40A5-8011-6F35DEC243CA}"
+EndProject
+Project("{F088123C-0E9E-452A-89E6-6BA2F21D5CAC}") = "ModelingProject1", "ModelingProject1\ModelingProject1.modelproj", "{B56534DB-D2FD-4EC4-B5BD-A0506B856716}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +17,10 @@ Global
 		{6ABD7F14-CC29-40A5-8011-6F35DEC243CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6ABD7F14-CC29-40A5-8011-6F35DEC243CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6ABD7F14-CC29-40A5-8011-6F35DEC243CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B56534DB-D2FD-4EC4-B5BD-A0506B856716}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B56534DB-D2FD-4EC4-B5BD-A0506B856716}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B56534DB-D2FD-4EC4-B5BD-A0506B856716}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B56534DB-D2FD-4EC4-B5BD-A0506B856716}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

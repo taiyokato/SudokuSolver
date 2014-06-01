@@ -46,7 +46,7 @@ namespace SudokuSolver
             get { return (SingleBlockWidth * SingleBlockWidth); }
         }
         /// <summary> 
-        /// Holds the current location 
+        /// Holds the nextrent location 
         /// 現在地を保持
         /// </summary>
         private Point Next;
@@ -60,37 +60,94 @@ namespace SudokuSolver
         /// </summary>
         //private Debug debugger;
         #endregion
-        
+
+        public Point EntryPoint;
         public TreeDiagram(int[,] g, int sbw, int[] fullints, int[,][] tempgrid)
         {
-            Grid = g; 
+            Grid = g;
             SingleBlockWidth = sbw;
             FullInts = fullints;
             TempGrid = tempgrid;
-            
+
             Initialize();
-            
+
             //debugger = new Debug();
             //Start from least unfilled block's least possibles
             //全ブロックから残りマスが一番少ない最初のブロックを選択し、そのブロック内の最初の一番残り可能性が少ないマスから始める
-            Next = GetLeastEmptyBlock();//GetNextLeastEmptyInInnerBlock(); //GetLeastEmptyBlock();
+            EntryPoint = Next = GetLeastEmptyBlock();//GetNextLeastEmptyInInnerBlock(); //GetLeastEmptyBlock();
             System.Diagnostics.Debug.WriteLine(Next);
             if (Next.x == -1)
             {
                 FinishFlag = false; //if fail == true, finishflag means incomplete, 
                 return; //return regardless of succeed or failure
             }
-            //Preparation before recursion
+            //Preparation before renextsion
             //ループ前に準備
             TempGrid[Next.x, Next.y] = GetPossible(Next.x, Next.y, true);
 
         }
         private void Initialize()
         {
-            Logger = new Stack<LogItem>(); 
+            Logger = new Stack<LogItem>();
         }
 
-        #region RecursiveTry
+        public int UnfilledCount;
+        ulong lcount = 0;
+
+        public bool Execute5(Point next)
+        {
+            if (FinishFlag) return true;
+            //PrintAll();
+            
+            HEAD:
+            if (next ==Point.Null)
+            {
+                if (UnfilledCount == 0)
+                {
+                    FinishFlag = true;
+                    return true;
+                }
+                return false;
+            }
+            TempGrid[next.x, next.y] = GetPossible(next.x, next.y, true);
+            {
+
+            RETURN:
+                lcount++;
+            //PrintAll();
+                if (TempGrid[next.x, next.y].Length == 0)
+                { 
+                    return false;
+                }
+                Grid[next.x, next.y] = TempGrid[next.x, next.y][0];
+                //TempGrid[next.x, next.y] = PopFirst(TempGrid[next.x, next.y]);
+                UnfilledCount--;
+                Point n2 = GetNextEmpty(next.x,next.y,true);
+                bool res = Execute5(n2);
+                if (res)
+                {
+                    if (UnfilledCount == 0)
+                    {
+                        FinishFlag = true;
+                        return true;
+                    }
+                    next = n2;
+                    goto HEAD; 
+                }
+                else
+                {
+                    Grid[next.x, next.y] = 0;
+                    TempGrid[next.x, next.y] = PopFirst(TempGrid[next.x, next.y]);
+                    UnfilledCount++;
+                    //return true;
+                    goto RETURN;
+                }
+            }
+
+        }
+
+
+        #region RenextsiveTry
         /// <summary>
         /// Executes tree-search
         /// </summary>
@@ -103,7 +160,7 @@ namespace SudokuSolver
                 if (Next.x == -1)
                 {
                     FinishFlag = (UnfilledCount == 0);//CheckFinish();
-                     
+
                     //debugger.Finish();
                     System.Diagnostics.Debug.WriteLine("Loop:" + count);
                     return; //return regardless of succeed or failure
@@ -326,7 +383,7 @@ namespace SudokuSolver
 
         }
         #endregion
-        
+
 
         /// <summary>
         /// DEPRECIATED. Checks for "x" each time. Use GetFilledCount at before looping. 
@@ -338,12 +395,12 @@ namespace SudokuSolver
             {
                 for (int y = 0; y < FullGridWidth; y++)
                 {
-                    if (Grid[x, y]==0) return false;
+                    if (Grid[x, y] == 0) return false;
                 }
             }
             return true;
         }
-        
+
         #region Impossibles
         /// <summary>
         /// Gets all possible values
@@ -454,7 +511,7 @@ namespace SudokuSolver
                 for (int ya = (ypos - SingleBlockWidth); ya < ypos; ya++)
                 {
                     if ((notincludeself) && (xa == x) && (ya == y)) continue; //skip self if notincludeself
-                    if (Grid[xa, ya]!=0)
+                    if (Grid[xa, ya] != 0)
                     {
                         pos[pointer] = Grid[xa, ya];
                         pointer++;
@@ -482,19 +539,19 @@ namespace SudokuSolver
         {
             //List<int> values = new List<int>();
             //List<string> values = new List<string>();
-            int[] values = new int[FullGridWidth*2];
+            int[] values = new int[FullGridWidth * 2];
             int pointer = 0;
-            
-            
+
+
             for (int a = 0; a < FullGridWidth; a++)
             {
                 //from x
-                if (Grid[x, a]!=0)
+                if (Grid[x, a] != 0)
                 {
                     values[pointer++] = Grid[x, a];
                 }
                 //from y
-                if (Grid[a, y]!=0)
+                if (Grid[a, y] != 0)
                 {
                     values[pointer++] = Grid[a, y];
                 }
@@ -550,9 +607,9 @@ namespace SudokuSolver
         {
             Point ret = Point.Null; //start from null
             int max = FullGridWidth; //max is all empty
-            for (int a = 0; a < FullGridWidth; a+= SingleBlockWidth)
+            for (int a = 0; a < FullGridWidth; a += SingleBlockWidth)
             {
-                for (int b = 0; b < FullGridWidth; b+= SingleBlockWidth)
+                for (int b = 0; b < FullGridWidth; b += SingleBlockWidth)
                 {
                     int tmp = CountInnerBlockEmpty(a, b);
                     if (tmp == 0) continue; //skip empty ones!
@@ -560,7 +617,7 @@ namespace SudokuSolver
                     {
                         max = tmp;
                         //dont use ret = new Point(a,b). takes more time initializing new object
-                        
+
                         ret.x = a;
                         ret.y = b;
                     }
@@ -580,8 +637,8 @@ namespace SudokuSolver
             //test code for GetLeastEmptyNext()
             Point ret = Point.NullObject, tmp = new Point();
             byte[] tracker = new byte[FullGridWidth];
-            int xcur = (startx == -1) ? SingleBlockWidth : startx;
-            int ycur = (starty == -1) ? SingleBlockWidth : starty;
+            int xnext = (startx == -1) ? SingleBlockWidth : startx;
+            int ynext = (starty == -1) ? SingleBlockWidth : starty;
             byte counter = 0;
 
             byte leastindex = 0;
@@ -590,9 +647,9 @@ namespace SudokuSolver
             for (int i = 0; i < FullGridWidth; i++)
             {
 
-                for (int x = (xcur - (SingleBlockWidth)); x < xcur; x++)
+                for (int x = (xnext - (SingleBlockWidth)); x < xnext; x++)
                 {
-                    for (int y = (ycur - SingleBlockWidth); y < ycur; y++)
+                    for (int y = (ynext - SingleBlockWidth); y < ynext; y++)
                     {
                         if (Grid[x, y] == 0)
                         {
@@ -603,11 +660,11 @@ namespace SudokuSolver
                     }
                 }
 
-                ycur += (byte)SingleBlockWidth;
-                if (ycur >= (FullGridWidth + SingleBlockWidth))
+                ynext += (byte)SingleBlockWidth;
+                if (ynext >= (FullGridWidth + SingleBlockWidth))
                 {
-                    ycur = SingleBlockWidth;
-                    xcur += SingleBlockWidth;
+                    ynext = SingleBlockWidth;
+                    xnext += SingleBlockWidth;
                 }
                 //i= 0->9
 
@@ -631,7 +688,7 @@ namespace SudokuSolver
             return ret;
             //*/
             #endregion
-            
+
             #region Previous
             /*
             int least_poscount = FullGridWidth;
@@ -673,7 +730,7 @@ namespace SudokuSolver
             Console.WriteLine(finalinnerleast);
             return finalinnerleast; //*/
             #endregion
-            
+
             #region Previous
             //Console.WriteLine(DateTime.Now.Ticks - start);
 
@@ -728,7 +785,7 @@ namespace SudokuSolver
             //the formula: http://stackoverflow.com/questions/2805703/good-way-to-get-the-key-of-the-highest-value-of-a-dictionary-in-c-sharp
             #endregion
         }
-       
+
         #endregion
     }
 }

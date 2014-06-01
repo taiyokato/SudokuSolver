@@ -1,0 +1,16 @@
+﻿To fix:
+**BFS SEARCH FOR IMPOSSIBLE OR NOT
+
+To do:
+probably do FlowerSearch?
+
+
+next version: 1.0.1.4
+
+so far modded:
+
+1. Shallow Copy mistake fixed
+Replaced with pointer copy. Faaassttt
+
+2. TreeDiagram recursion option
+No Stacks. Only recursive. Slightly faster and consumes less memory

@@ -5,63 +5,9 @@ using System.Collections.Generic;
 /*
  * BY TAIYO KATO
  *
- * VER 1.0.1.3
+ * VER 1.0.1.4
  * 
- * ALPHA VERSION FINISHED: 12:59 AM 7/14/2013
- * 
- * EDIT FINISH: 12:48 AM 7/15/2013
- * Edit point:
- * 1. Compatibility for 4x4, 9x9, 16x16... so on sudokus
- * 2. Checks if input value is invalid
- * 
- * EDIT FINISH: 1:33 AM 7/15/2013
- * Edit point:
- * 1. Bug fix for compatibility for 4x4, 9x9, 16x16... so on
- * 2. Allow 'x' only for unknown values
- * 3. Separate each value with a space. Compatibility for higher than 9x9 ones. (since values will be 1-16, which is double digit. Cannot use foreach(char) anymore)
- * 
- * EDIT FINISH: 2:23 AM 7/25/2013
- * Edit point:
- * 1. Newly added TreeDiagram solve
- * 2. Grid size reset allowed
- * 
- * EDIT FINISH: 9:08 PM 7/25/2013
- * Edit point:
- * 1. Try catch invalid grids
- * 
- * EDIT FINISH: 8:36 AM 9/25/2013
- * Edit point:
- * 1. Basic (but hard) logical way of solving added
- * 
- * EDIT FINISH: 11:51 PM 10/1/2013
- * Edit point:
- * 1. Checks for horizontal + vertical row for one empty block leftover, and innerblock leftover
- * 
- * EDIT FINISH: 2:15 PM 10/2/2013
- * Edit point:
- * 1. Lighter and simplier modification for GetInnerRange();
- * Overall performance speed up by min. 60%
- *
- * EDIT FINISH: 9:15 PM 10/6/2013
- * Edit point: 
- * 1. Removed confirmed unused methods
- * 2. Less loopings and checked for unnecessary looping duplication
- * 
- * EDIT FINISH: 11:09 PM 11/20/2013
- * Edit point:
- * 1. Minor fix on inner block remaining value checks
- * 2. Fixed bug that FillTemp2() will fill in x with overlapping values
- * 
- * EDIT FINISH: 6:23 PM 11/21/2013
- * Edit point:
- * 1. Replaced List<Tuple<Point,int>> Logger with Stack<LogItem>, where LogItem is a custom struct.
- * 
- * EDIT FINISH: 11:21 PM 11/25/2013
- * Edit point:
- * 1. Changed TreeDiagram constructor to WITHOUT UnfilledCount
- * 2. Changed Execute2() to Execute2(ref UnfilledCount) to replace old TreeDiagram constructor
- * 3. Big improvement with location-possibility evaluation inside CheckHVLeftOver(). Faster and smarter.
- * 4. Added Validator to check grid genuineness
+ * Release log ommitted.
  */
 namespace SudokuSolver
 {
