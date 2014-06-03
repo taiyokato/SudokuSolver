@@ -56,4 +56,4 @@ Run it.
 ## License
 ==
 
-Released under GNU License 3
+Uhh, any good license?
