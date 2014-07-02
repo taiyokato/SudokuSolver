@@ -1,0 +1,31 @@
+<NotepadPlus>
+    <Session activeView="0">
+        <mainView activeIndex="1">
+            <File firstVisibleLine="38" xOffset="0" scrollWidth="2312" startPos="1687" endPos="1687" selMode="0" lang="HTML" encoding="-1" filename="C:\Users\15110751\Desktop\sudokusolver github\index.html">
+                <Fold line="1" />
+                <Fold line="16" />
+                <Fold line="57" />
+                <Fold line="61" />
+                <Fold line="62" />
+                <Fold line="63" />
+                <Fold line="69" />
+                <Fold line="70" />
+                <Fold line="76" />
+                <Fold line="77" />
+                <Fold line="88" />
+                <Fold line="89" />
+                <Fold line="90" />
+                <Fold line="92" />
+                <Fold line="93" />
+                <Fold line="94" />
+                <Fold line="95" />
+                <Fold line="103" />
+                <Fold line="104" />
+            </File>
+            <File firstVisibleLine="6" xOffset="0" scrollWidth="2312" startPos="829" endPos="1177" selMode="0" lang="HTML" encoding="-1" filename="C:\Users\15110751\Desktop\sudokusolver github\old\index.html" />
+        </mainView>
+        <subView activeIndex="0">
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="4320" startPos="63" endPos="63" selMode="0" lang="Javascript" encoding="-1" filename="C:\Users\15110751\Desktop\sudokusolver github\js\common.js" />
+        </subView>
+    </Session>
+</NotepadPlus>

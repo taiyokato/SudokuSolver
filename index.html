@@ -1,79 +1,134 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
+<!--
+	Miniport 2.5 by HTML5 UP
+	html5up.net | @n33co
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
 <html>
+	<head>
+		<title>Miniport by HTML5 UP</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<link href="http://fonts.googleapis.com/css?family=Open+Sans:300,600,700" rel="stylesheet" />
+		<script src="js/jquery.min.js"></script>
+		<script src="js/config.js"></script>
+		<script src="js/skel.min.js"></script>
+		<noscript>
+			<link rel="stylesheet" href="css/skel-noscript.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-desktop.css" />
+		</noscript>
+		<!--[if lte IE 9]><link rel="stylesheet" href="css/ie9.css" /><![endif]-->
+		<!--[if lte IE 8]><script src="js/html5shiv.js"></script><link rel="stylesheet" href="css/ie8.css" /><![endif]-->
+		<!--[if lte IE 7]><link rel="stylesheet" href="css/ie7.css" /><![endif]-->
+	</head>
+	<body>
 
-  <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Sudokusolver : Solves sudoku problems" />
+		<!-- Nav -->
+			<nav id="nav">
+				<ul class="container">
+					<li><a href="#top">Top</a></li>
+					<li><a href="#feature">Features</a></li>
+					<li><a href="#sourcec">GitHub</a></li>
+				</ul>
+			</nav>
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+		<!-- Home -->
+			<div class="wrapper wrapper-style1 wrapper-first">
+				<article class="container" id="top">
+					<div class="row">
+						<!-- <div class="4u">
+							<span class="me image image-full"><img src="images/me.jpg" alt="" /></span>
+						</div> -->
+						<div class="8u">
+							<header>
+								<h1><strong>Sudoku Solver</strong>.</h1>
+							</header>
+							<p><i>Sudoku Solver</i> solves various sizes of sudokus.<br/>
+							9x9, 16x16, 25x25...Compatible to grids greater than 9x9 and square of an integer.<br/>
+							Try input a number:<input id="tryinput"/> <div id="validity"></div>
+							</p>
+							<a href="#feature" class="button button-big">Show me more</a>
+						</div>
+					</div>
+				</article>
+			</div>
 
-    <title>Sudokusolver</title>
-  </head>
+		<!-- Feature -->
+			<div class="wrapper wrapper-style2">
+				<article id="feature">
+					<header>
+						<h2>Features</h2>
+					</header>
+					<div class="fcontainer">
+						<div class="row">
+							<div class="0u">
+								<section class="box box-style1">
+									<span class="fa featured "><img title="Icon made by Freepik" src="img/svg/speedometer17.svg" /></span>
+									<h3>Blazing fast</h3>
+									<p>Easy problems? Solved less than 1 second. Believe the problem is super hard? Ready when you are leaving the room getting a cup of coffee. </p>
+								</section>
+							</div>
+							<div class="0u">
+								<section class="box box-style1">
+									<span class="fa featured "><img title="Icon made by Freepik" src="img/svg/return3.svg" /></span>
+									<h3>Backtracking</h3>
+									<p>There's time you just can't solve a puzzle with techniques. So there you have: 'Back tracking'. Recursion or Stack.</p>
+								</section>
+							</div>
+							<div class="0u">
+								<section class="box box-style1">
+									<span class="fa featured "><img title="Icon made by Freepik" src="img/svg/atom2.svg" /></span>
+									<h3>Smart solving</h3>
+									<p>We know brute force will sometimes take more time than dictionary attack. Sudoku Solver starts by looking at possibilities and solves with logic</p>
+								</section>
+							</div>
+							<div class="0u">
+								<section class="box box-style1">
+									<span class="fa featured "><img title="Icon made by Picol" src="img/svg/text32.svg" /></span>
+									<h3>We aren't always right</h3>
+									<p>Got a problem you just can't solve? We got a validator to check whether the problem is solvable or not</p>
+								</section>
+							</div>
+							<div class="0u">
+								<section class="box box-style1">
+									<span class="fa featured "><img title="Icon made by Adam Whitcroft" src="img/svg/console4.svg" /></span>
+									<h3>It's black and white</h3>
+									<p>The famous quote: Simple is best. Console</p>
+								</section>
+							</div>
+						</div>
+					</div>
+				</article>
+			</div>
+		<!-- Contact -->
+			<div class="wrapper wrapper-style4">
+				<article id="sourcec" class="container small">
+					<header>
+						<h2>Check it out at GitHub</h2>
+						<div>
+						<div class="row">
+							<div class="12u">
+								<ul class="social">		
+								<li class="github"><a href="http://github.com/n33" class="fa fa-github"><span>Github</span></a></li>
+								</ul>
+								<hr />
+							</div>
+						</div>
+					</div>
+					<footer>
+						<ul id="copyright">
+							<li>&copy; 2013 Jane Doe</li>
+							<li>Design: <a href="http://html5up.net/">HTML5 UP</a></li>
+						</ul>
+					</footer>
+					</header>
+					
+				</article>
+			</div>
 
-  <body>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/taiyokato/SudokuSolver">View on GitHub</a>
-
-          <h1 id="project_title">Sudokusolver</h1>
-          <h2 id="project_tagline">Solves sudoku problems</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/taiyokato/SudokuSolver/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/taiyokato/SudokuSolver/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
-
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
-
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
-
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
-
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-      </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Sudokusolver maintained by <a href="https://github.com/taiyokato">taiyokato</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
-    
-
-  </body>
+	</body>
+	<script src="js/common.js"></script>
 </html>
