@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /*
  * BY TAIYO KATO
  *
- * VER 1.0.1.4
+ * VER 1.0.1.5
  * 
  * Release log ommitted.
  */
@@ -16,6 +16,9 @@ namespace SudokuSolver
         [STAThread]
         static void Main(string[] args)
         {
+
+            bool noprint = false;
+            Console.Clear();
             if (args.Length > 0)
             {
                 if (args[0].ToLower().Equals("-a"))
@@ -25,24 +28,19 @@ namespace SudokuSolver
                     Console.Read();
                     System.Environment.Exit(0); //exit
                 }
-                Reader.ReadFromFile(args[0]);
-                new Solver(true);
+                if (!Reader.ReadFromFile(args[0])) return;
+                new Solver(true,skipprint: noprint);
                 return;
             }
-            //Console.BufferWidth = Console.LargestWindowWidth;
-            //Console.WindowWidth = Console.LargestWindowWidth;
-            //Console.WindowHeight = Console.LargestWindowHeight;
-            Console.Clear();
-
-            Solver solver = new Solver();
+            new Solver(skipprint: noprint);
         }
     }
 
     #region Structs
     /// <summary>
-    /// Object that can hold x&y location
+    /// Object that can hold x and y location
     /// </summary>
-    public struct Point
+    public struct Point : IComparer<Point>
     {
         private int? _x;
         private int? _y;
@@ -62,7 +60,12 @@ namespace SudokuSolver
             x = X;
             y = Y;
         }
-        
+        public Point(Point p)
+            : this()
+        {
+            x = p.x;
+            y = p.y;
+        }
         
         /// <summary> Custom ToString() for debug purpose </summary>
         /// <returns>[x,y]</returns>
@@ -97,6 +100,15 @@ namespace SudokuSolver
         public static Point Null
         {
             get { return new Point(-1, -1); }
+        }
+
+        public int Compare(Point p1, Point p2)
+        {
+            if (p1.x == p2.x)
+            {
+                return p1.y - p2.y;
+            }
+            return p1.x - p2.y;
         }
     }
     public struct LogItem

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 
 namespace SudokuSolver
@@ -105,14 +104,14 @@ namespace SudokuSolver
         /// <param name="grid">ref Grid</param>
         /// <param name="fgw">FullGridWidth</param>
         /// <returns>Grid is valid or not</returns>
-        public bool GridReadyValidate(ref int[,] grid, int fgw)
+        public bool GridReadyValidate(ref int[][] grid, int fgw)
         {
             int[] counts = new int[fgw];
             for (int x = 0; x < FullGridWidth; x++)
             {
                 for (int y = 0; y < FullGridWidth; y++)
                 {
-                    int item = grid[x, y];
+                    int item = grid[x][y];
                     if (item == 0) { continue; }
                     counts[item-1]++;
                 }
@@ -137,7 +136,7 @@ namespace SudokuSolver
         /// <param name="grid"></param>
         /// <param name="unfilled"></param>
         /// <returns></returns>
-        public bool Validate2(ref int[,] grid, int unfilled, out bool result)
+        public bool Validate2(ref int[][] grid, int unfilled, out bool result)
         {
             result = true;
             if (unfilled > 0) return true;
@@ -146,8 +145,8 @@ namespace SudokuSolver
             {
                 for (int y = 0; y < FullGridWidth; y++)
                 {
-                    if (grid[x, y] == 0) continue;
-                    InRow.Add(grid[x, y]);
+                    if (grid[x][y] == 0) continue;
+                    InRow.Add(grid[x][y]);
                 }
                 if (InRow.Count != FullGridWidth)
                 {
@@ -167,7 +166,7 @@ namespace SudokuSolver
         /// </summary>
         /// <param name="grid">Grid</param>
         /// <returns>Success or fail</returns>
-        public bool FinalValidate(ref int[,] grid, int fgw)
+        public bool FinalValidate(ref int[][] grid, int fgw)
         {
             ushort[] row = new ushort[fgw];
 
@@ -175,8 +174,8 @@ namespace SudokuSolver
             {
                 for (int a = 0; a < fgw; a++)
                 {
-                    if (grid[l, a] == 0) continue;
-                    row[grid[l, a]-1]++;
+                    if (grid[l][a] == 0) continue;
+                    row[grid[l][a]-1]++;
                 }
                 for (int i = 0; i < row.Length; i++)
                 {

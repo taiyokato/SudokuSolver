@@ -2,61 +2,52 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SudokuSolver
 {
     public class Reader
     {
-        public static int[,] ProcessedGrid;
+        public static int[][] ProcessedGrid;
         public static string RawInput;
         public static int SingleSize;
         public static int GridSize
         {
-            get { return (SingleSize * 3); }
+            get { return (SingleSize * SingleSize); }
             set { SingleSize = (int)Math.Sqrt(value); }
         }
-        public static string ReadFromFile(string path)
+        public static bool ReadFromFile(string path)
         {
-            System.IO.StreamReader sr = new System.IO.StreamReader(path);
-            RawInput = sr.ReadToEnd();
-            sr.Close();
+            if (System.IO.File.Exists(path))
+            {
+                System.IO.StreamReader sr = new System.IO.StreamReader(path);
+                RawInput = sr.ReadToEnd();
+                sr.Close();
 
-            return RawInput;
+                return true;
+            }
+            return false;
         }
 
-        public static int[,] ProcessRaw()
+        public static int[][] ProcessRaw()
         {
-            if (string.IsNullOrWhiteSpace(RawInput.Trim())) throw new NullReferenceException("No input");
+            if (string.IsNullOrEmpty(RawInput.Trim())) throw new NullReferenceException("No input");
 
-            string[] split = RawInput.Split(',');
-            int num = -1;
-            bool s = int.TryParse(split[0],out num);
-            if (!s) throw new NullReferenceException("Invalid input");
-            int[,] grid = new int[num,num];
-            GridSize = num;
+            string[] alllines = RawInput.Split(Environment.NewLine.ToCharArray(),StringSplitOptions.RemoveEmptyEntries);
+            GridSize = alllines.Length;
+            ProcessedGrid = new int[GridSize][];
 
-            int t = 1;
-
-            for (int y = 0; y < GridSize; y++)
+            string[] tmp = {};
+            for (int i = 0; i < alllines.Length; i++)
             {
+                tmp = alllines[i].Split(new char[]{' '},StringSplitOptions.RemoveEmptyEntries);
+                ProcessedGrid[i] = new int[GridSize];
                 for (int x = 0; x < GridSize; x++)
                 {
-                    if (split[t].Trim().Equals(""))
-                    {
-                        num = 0;
-                        goto INPUT;
-                    }
-                    s = int.TryParse(split[t], out num);
-                    if (!s) throw new NullReferenceException("Invalid input");
-                INPUT:
-                    grid[y, x] = num;
-                t++;
+                    ProcessedGrid[i][x] = (tmp[x].Equals("x")) ? 0 : int.Parse(tmp[x]);
                 }
             }
-            ProcessedGrid = grid;
 
-            return grid;
+            return ProcessedGrid;
 
         }
     }
