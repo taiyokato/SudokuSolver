@@ -6,15 +6,15 @@ using System.Diagnostics;
 
 namespace SudokuSolver
 {
-    public class Validator
+    public static class Validator
     {
         #region def
-        private int? singleblockw;
+        private static int? singleblockw;
         /// <summary> 
         /// For accessing nullable int singleblockw 
         /// Nullable int singleblockwをアクセスするために。singleblockwがnullならデフォルトの3を返す
         /// </summary>
-        private int SingleBlockWidth
+        private static int SingleBlockWidth
         {
             get { return (singleblockw.HasValue) ? singleblockw.Value : 3; }
             set { singleblockw = value; }
@@ -23,13 +23,13 @@ namespace SudokuSolver
         /// Shortcut for getting full grid width since n^2 
         /// 表のフルサイズを取得するショートカット。表のサイズはSingleBlockWidthのn^2
         /// </summary>
-        private int FullGridWidth
+        private static int FullGridWidth
         {
             get { return (SingleBlockWidth * SingleBlockWidth); }
         }
-        private int[] FullInts;
-        private bool? _success;
-        public bool Success
+        private static int[] FullInts;
+        private static bool? _success;
+        public static bool Success
         {
             get {return (_success.HasValue)? _success.Value : false;}
             set { _success = value; }
@@ -37,20 +37,20 @@ namespace SudokuSolver
         /// <summary>
         /// Shadow of BreakedAt
         /// </summary>
-        private int? _breakedat;
+        private static int? _breakedat;
         /// <summary>
         /// Breaked at which horizontal axis
         /// </summary>
-        public int BreakedAt
+        public static int BreakedAt
         {
             get { return (_breakedat.HasValue) ? _breakedat.Value : -1; }
             set { _breakedat = value; }
         }
-        private int sum;
+        private static int sum;
 
         #endregion
 
-        public Validator(int sbw, int[] fullints)
+        public static void Init(int sbw, int[] fullints)
         {
             SingleBlockWidth = sbw;
             BreakedAt = -1;
@@ -70,7 +70,7 @@ namespace SudokuSolver
         /// <param name="unfilled">UnfilledCount</param>
         /// <param name="result">チェック成功だった場合、resultにbool結果が吐き出される</param>
         /// <returns>True： チェックできる False: チェック出来ない</returns>
-        public bool Validate(ref int[,] grid, int unfilled, out bool result)
+        public static bool Validate(ref int[,] grid, int unfilled, out bool result)
         {
             result = true;
             if (unfilled > 0) { result = false; return false; }
@@ -104,7 +104,7 @@ namespace SudokuSolver
         /// <param name="grid">ref Grid</param>
         /// <param name="fgw">FullGridWidth</param>
         /// <returns>Grid is valid or not</returns>
-        public bool GridReadyValidate(ref int[][] grid, int fgw)
+        public static bool GridReadyValidate(ref int[][] grid, int fgw)
         {
             int[] counts = new int[fgw];
             for (int x = 0; x < FullGridWidth; x++)
@@ -136,7 +136,7 @@ namespace SudokuSolver
         /// <param name="grid"></param>
         /// <param name="unfilled"></param>
         /// <returns></returns>
-        public bool Validate2(ref int[][] grid, int unfilled, out bool result)
+        public static bool Validate2(ref int[][] grid, int unfilled, out bool result)
         {
             result = true;
             if (unfilled > 0) return true;
@@ -166,7 +166,7 @@ namespace SudokuSolver
         /// </summary>
         /// <param name="grid">Grid</param>
         /// <returns>Success or fail</returns>
-        public bool FinalValidate(ref int[][] grid, int fgw)
+        public static bool FinalValidate(ref int[][] grid, int fgw)
         {
             ushort[] row = new ushort[fgw];
 
@@ -190,7 +190,7 @@ namespace SudokuSolver
         /// Obtain the total sum of one line for the grid
         /// </summary>
         /// <param name="sum">ref int sum. Put in the referenced int variable</param>
-        private void Sum(ref int sum)
+        private static void Sum(ref int sum)
         {
             for (int i = 1; i <= FullGridWidth; i++)
             {

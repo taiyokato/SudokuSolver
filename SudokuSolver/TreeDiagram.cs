@@ -62,7 +62,7 @@ namespace SudokuSolver
         #endregion
 
         public Point EntryPoint;
-        public TreeDiagram(int[][] g, int sbw, int[] fullints, int[][][] tempgrid)
+        public TreeDiagram(ref int[][] g, int sbw, int[] fullints, ref int[][][] tempgrid)
         {
             Grid = g;
             SingleBlockWidth = sbw;
@@ -84,9 +84,9 @@ namespace SudokuSolver
                 FinishFlag = false; //if fail == true, finishflag means incomplete, 
                 return; //return regardless of succeed or failure
             }
-            //Preparation before renextsion
+            //Preparation before recursion
             //ループ前に準備
-            TempGrid[Next.x][Next.y] = GetPossible(Next.x, Next.y, true);
+            //TempGrid[Next.x][Next.y] = GetPossible(Next.x, Next.y, true);
 
         }
         private void Initialize()
@@ -322,10 +322,11 @@ namespace SudokuSolver
                     //pt.Enqueue(new Point() { x = xa, y = ya });
                 }
             }
-            Solver.TrimEndPt(ref pt);
+            Point.TrimEndPt(ref pt);
             //return pt.ToArray();
             return pt;//pt.ToArray();
         }
+        
 
         #endregion
 
@@ -342,8 +343,6 @@ namespace SudokuSolver
         private void PrintHorizontalBorder(bool withnewline = false, bool headerfooter = false)
         {
             string outstr = (headerfooter) ? "-" : "|";
-
-            bool outflag = false;
 
             int itemwidth = (Math.Floor(Math.Log10(Math.Abs(FullGridWidth)) + 1) > 1) ? 3 : 2; //2 char + 1 space, 1 char + 1 space
 
@@ -478,73 +477,6 @@ namespace SudokuSolver
         private int GetInnerRange(int loc)
         {
             return (((loc / SingleBlockWidth) + 1) * SingleBlockWidth);
-            #region Previous Code
-            //code was good, but better and prob. faster replacement found
-
-            //for (int i = SingleBlockWidth; i <= (FullGridWidth); i += SingleBlockWidth)
-            //{
-            //    if (loc <= i - 1)
-            //    {
-            //        return i;
-            //    }
-            //}
-            //return 0;
-            #endregion
-
-
-            #region Previous Code
-            //code below works, but code above works faster and is simplier
-
-            //List<int[]> RangeList = new List<int[]>();
-            //List<int> tmplst = new List<int>();
-
-            //int next = 0;
-            //for (int i = 0; i < SingleBlockWidth; i++)
-            //{
-            //    for (int x = next; x < (next + SingleBlockWidth); x++)
-            //    {
-            //        tmplst.Add(x);
-            //    }
-            //    next += SingleBlockWidth;
-            //    RangeList.Add(tmplst.ToArray());
-            //    tmplst.Clear();
-            //}
-            //int index = RangeList.FindIndex(a => a.Contains(loc)); //return the section's last item index (1~)
-            //int indexcalc = ((index * SingleBlockWidth) + SingleBlockWidth);
-            //return indexcalc;
-            #endregion
-
-
-            #region Previous code
-            //Print out
-            //foreach (int[] item in RangeList)
-            //{
-            //    foreach (int it in item)
-            //    {
-            //        Console.Write(it + " ");
-            //    }
-            //    Console.WriteLine();
-            //}
-
-            //Only supports for normal 9x9 sudoku
-            //3-9, {012} {345} {678}
-            //switch (loc)
-            //{
-            //    case 0:
-            //    case 1:
-            //    case 2:
-            //        return 3;
-            //    case 3:
-            //    case 4:
-            //    case 5:
-            //        return 6;
-            //    case 6:
-            //    case 7:
-            //    case 8:
-            //        return 9;
-            //}
-            //return 0; //will never happen, but to pass compiler
-            #endregion
         }
         
 
@@ -647,163 +579,7 @@ namespace SudokuSolver
 
             return GetInnerEmpty(ret.x, ret.y, false)[0]; //grab the point at last. dont use this method while looping to reduce time
             //return ret;
-
-
-
-            #region Previous
-            /*
-
-            //test code for GetLeastEmptyNext()
-            Point ret = Point.NullObject, tmp = new Point();
-            byte[] tracker = new byte[FullGridWidth];
-            int xnext = (startx == -1) ? SingleBlockWidth : startx;
-            int ynext = (starty == -1) ? SingleBlockWidth : starty;
-            byte counter = 0;
-
-            byte leastindex = 0;
-            byte least = (byte)FullGridWidth;
-            bool flag = false;
-            for (int i = 0; i < FullGridWidth; i++)
-            {
-
-                for (int x = (xnext - (SingleBlockWidth)); x < xnext; x++)
-                {
-                    for (int y = (ynext - SingleBlockWidth); y < ynext; y++)
-                    {
-                        if (Grid[x, y] == 0)
-                        {
-                            counter++;
-                            if (!flag) tmp = new Point(x, y);
-                            flag = true;
-                        }
-                    }
-                }
-
-                ynext += (byte)SingleBlockWidth;
-                if (ynext >= (FullGridWidth + SingleBlockWidth))
-                {
-                    ynext = SingleBlockWidth;
-                    xnext += SingleBlockWidth;
-                }
-                //i= 0->9
-
-                //3x3 each
-
-                //y+= 3
-
-                //when y is 9, y is 0, x += 3
-                tracker[i] = counter;
-                if (tracker[i] < least)
-                {
-                    least = tracker[i];
-                    leastindex = (byte)i;
-                    ret = tmp;
-                }
-                counter = 0;
-                flag = false;
-            }
-
-
-            return ret;
-            //*/
-            #endregion
-
-            #region Previous
-            /*
-            int least_poscount = FullGridWidth;
-            //Point least_loc = new Point();// { x = -1, y = -1 };
-            Point innerleast = new Point();
-            Point finalinnerleast = new Point();
-            int xpos, ypos, count;
-            int possiblesum = (FullGridWidth*FullGridWidth);
-            int prev_possiblesum = (FullGridWidth * FullGridWidth);
-            bool innerflag = true;
-
-            for (int x = startx; x < FullGridWidth; x += SingleBlockWidth)
-            {
-                for (int y = starty; y < FullGridWidth; y += SingleBlockWidth)
-                {
-                    xpos = (x + SingleBlockWidth);
-                    ypos = (y + SingleBlockWidth);
-                    count = 0;
-                    possiblesum = 0;
-                    for (int xa = (xpos - SingleBlockWidth); xa < xpos; xa++)
-                    {
-                        for (int ya = (ypos - SingleBlockWidth); ya < ypos; ya++)
-                        {
-                            if (TempGrid[xa, ya].Length > 0) { count++; possiblesum += TempGrid[xa, ya].Length; }
-                            if ((innerflag) && (Grid[xa, ya]==0)) { innerleast = new Point() { x = xa, y = ya }; innerflag = false; }
-                        }
-                    }
-
-                    innerflag = true;
-                    if (prev_possiblesum < possiblesum) continue;
-                    if (least_poscount > count)
-                    {
-                        prev_possiblesum = possiblesum;
-                        least_poscount = count;
-                        finalinnerleast = innerleast;
-                    }                    
-                }
-            }
-            Console.WriteLine(finalinnerleast);
-            return finalinnerleast; //*/
-            #endregion
-
-            #region Previous
-            //Console.WriteLine(DateTime.Now.Ticks - start);
-
-            /*
-            //This one takes 10000 ticks
-            start = DateTime.Now.Ticks;
-            for (int x = startx; x < FullGridWidth; x += SingleBlockWidth)
-            {
-                for (int y = starty; y < FullGridWidth; y += SingleBlockWidth)
-                {
-                    xpos = GetInnerRange(x);
-                    ypos = GetInnerRange(y);
-                    for (int xa = (xpos - SingleBlockWidth); xa < xpos; xa++)
-                    {
-                        for (int ya = (ypos - SingleBlockWidth); ya < ypos; ya++)
-                        {
-                            if (TempGrid[xa, ya].Possibles.Length > 0) { count++; possiblesum += TempGrid[xa, ya].Possibles.Length; }
-                        }
-                    }
-                    if (count <= leastcount)
-                    {
-                        if (startfrom > 0)
-                        {
-                            if (count >= startfrom) leastcount = count;
-                        }
-                        else
-                        {
-                            leastcount = count;
-                        }
-
-                    }
-                    count = 0;//reset
-
-                    if (possiblesum != 0) //avoid returning all-filled innerblock
-                    {
-                        KeyValuePair<Point, int> pipair = new KeyValuePair<Point, int>(new Point() { x = x, y = y }, leastcount);
-                        KeyValuePair<KeyValuePair<Point, int>, int> pairintpair = new KeyValuePair<KeyValuePair<Point, int>, int>(pipair, possiblesum);
-                        tracker.Add(pairintpair);
-                    }
-                    //Console.WriteLine("{0},{1}: {2}, {3}", x, y, leastcount, possiblesum);
-                    possiblesum = 0;
-                }
-                starty = 0;//reset y value to head of line
-            }
-            Console.WriteLine(DateTime.Now.Ticks - start);
-            least_count = leastcount;
-            Point nextmin = (tracker.Length == 0) ? new Point() : tracker.Reverse<KeyValuePair<KeyValuePair<Point, int>, int>>().Aggregate((p, n) => ((p.Key.Value < n.Key.Value) && (p.Value < n.Value)) ? p : n).Key.Key;
-            return nextmin; //*/
-            //Point nextmin = tracker.Reverse<KeyValuePair<Point, int>>().Aggregate((p, n) => p.Value < n.Value ? p : n).Key;
-            //Aggregate function searches all the way until last item, and we are looking for the first item that matches.
-            //Therefore we need to reverse the list first so that the last item it gets is what we want
-            //the formula: http://stackoverflow.com/questions/2805703/good-way-to-get-the-key-of-the-highest-value-of-a-dictionary-in-c-sharp
-            #endregion
-        }
+		}
 
         #endregion
 
@@ -837,8 +613,6 @@ namespace SudokuSolver
 
                     Point[] empty = GetInnerEmpty(xa, ya, false);
 
-                    List<sLeastShare> track = new List<sLeastShare>();
-
                     //make new list according to each empty's possibles length where count must be greater than 1
                     //sort the list by length
                     var a =
@@ -848,19 +622,13 @@ namespace SudokuSolver
                          orderby g.Count(), g.Key ascending
                          select new { g.Key, Count = g.Count(), g };
                     var d = a.ToArray();
-                     
+                    
 
                     least.Add(new sLeastShare(GetSpecificPossibleTempCount(d[0].Key, new Point(xa,ya))[0],d[0].Key));
-
-
-                    
-                    //ypos += SingleBlockWidth;
-            
                 }
             }
-
             var sorted = least.OrderBy(a => a.val).ToArray();
-            return sorted[0].p; ;
+            return sorted[0].p;
         }
         public Point[] GetSpecificPossibleTempCount(int len, Point loc)
         {
@@ -872,7 +640,22 @@ namespace SudokuSolver
             {
                 for (int ya = (ypos - SingleBlockWidth); ya < ypos; ya++)
                 {
-                    if (TempGrid[xa][ya].Length == len) locs[t++] = (new Point(xa, ya));
+                    //if (TempGrid[xa][ya] == null && len == 0)
+                    //if (((TempGrid[xa][ya] == null) ? 0 : TempGrid[xa][ya].Length) == len)
+                    if (TempGrid[xa][ya].Length == len) 
+                        locs[t++] = (new Point(xa, ya));
+                    //switch (TempGrid[xa][ya] == null)
+                    //{
+                    //    case true:
+                    //        if (len == 0) goto default;
+                    //        break;
+                    //    case false:
+                    //        if (TempGrid[xa][ya].Length == len) goto default;
+                    //        break;
+                    //    default:
+                    //        locs[t++] = (new Point(xa, ya));
+                    //        break;
+                    //}
                 }
             }
             return locs.ToArray();

@@ -16,7 +16,6 @@ namespace SudokuSolver
         [STAThread]
         static void Main(string[] args)
         {
-
             bool noprint = false;
             Console.Clear();
             if (args.Length > 0)
@@ -24,7 +23,6 @@ namespace SudokuSolver
                 if (args[0].ToLower().Equals("-a"))
                 {
                     Console.WriteLine(string.Format("SudokuSolver - (c) {0}, by Taiyo Kato", DateTime.Today.Year));
-                    Console.WriteLine("Press enter to finish...");
                     Console.Read();
                     System.Environment.Exit(0); //exit
                 }
@@ -40,7 +38,7 @@ namespace SudokuSolver
     /// <summary>
     /// Object that can hold x and y location
     /// </summary>
-    public struct Point : IComparer<Point>
+    public struct Point
     {
         private int? _x;
         private int? _y;
@@ -97,18 +95,30 @@ namespace SudokuSolver
         {
             return base.GetHashCode();
         }
-        public static Point Null
+        public static readonly Point Null = new Point(-1, -1);
+
+        public static Point[] TrimAt(ref Point[] arr, int index)
         {
-            get { return new Point(-1, -1); }
+            Point[] fin = new Point[index];
+            for (int i = 0; i < index; i++)
+            {
+                fin[i] = arr[i];
+            }
+            return fin;
         }
 
-        public int Compare(Point p1, Point p2)
+        public static void TrimEndPt(ref Point[] a)
         {
-            if (p1.x == p2.x)
+            int loc = 0;
+            for (int i = a.Length - 1; i >= 0; i--)
             {
-                return p1.y - p2.y;
+                if (a[i] != Point.Null)
+                {
+                    loc = i + 1;
+                    break;
+                }
             }
-            return p1.x - p2.y;
+            a = TrimAt(ref a, loc);
         }
     }
     public struct LogItem
