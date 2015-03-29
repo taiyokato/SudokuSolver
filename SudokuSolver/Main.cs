@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /*
  * BY TAIYO KATO
  *
- * VER 1.0.1.5
+ * VER 1.0.1.6
  * 
  * Release log ommitted.
  */
@@ -97,14 +97,14 @@ namespace SudokuSolver
         }
         public static readonly Point Null = new Point(-1, -1);
 
-        public static Point[] TrimAt(ref Point[] arr, int index)
+        public static void TrimAt(ref Point[] arr, int index)
         {
             Point[] fin = new Point[index];
             for (int i = 0; i < index; i++)
             {
                 fin[i] = arr[i];
             }
-            return fin;
+            arr = fin;
         }
 
         public static void TrimEndPt(ref Point[] a)
@@ -118,7 +118,7 @@ namespace SudokuSolver
                     break;
                 }
             }
-            a = TrimAt(ref a, loc);
+            TrimAt(ref a, loc);
         }
     }
     public struct LogItem

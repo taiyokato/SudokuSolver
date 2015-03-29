@@ -49,7 +49,11 @@ namespace SudokuSolver
         /// Holds the nextrent location 
         /// 現在地を保持
         /// </summary>
-        private Point Next;
+        public Point Next
+        {
+            get;
+            private set;
+        }
         /// <summary> 
         /// Tracks the filled in location and value while backtrack solving 
         /// バックトラック時、巻き戻しできるように記録
@@ -61,13 +65,14 @@ namespace SudokuSolver
         //private Debug debugger;
         #endregion
 
-        public Point EntryPoint;
-        public TreeDiagram(ref int[][] g, int sbw, int[] fullints, ref int[][][] tempgrid)
+        
+        public TreeDiagram(ref int[][] g, int sbw, ref int[] fullints, ref int[][][] tempgrid, ref int unfilledcount)
         {
             Grid = g;
             SingleBlockWidth = sbw;
             FullInts = fullints;
             TempGrid = tempgrid;
+            UnfilledCount = unfilledcount;
 
             Initialize();
             //PrintTempGridCount();
@@ -76,10 +81,9 @@ namespace SudokuSolver
             //Start from least unfilled block's least possibles
             //全ブロックから残りマスが一番少ない最初のブロックを選択し、そのブロック内の最初の一番残り可能性が少ないマスから始める
             //EntryPoint = Next = GetLeastEmptyBlock();//GetNextLeastEmptyInInnerBlock(); //GetLeastEmptyBlock();
-            EntryPoint = Next = LeastShareBlock();
+            Next = LeastShareBlock();
 
-            //System.Diagnostics.Debug.WriteLine(Next);
-            if (Next.x == -1)
+            if (Next == Point.Null)
             {
                 FinishFlag = false; //if fail == true, finishflag means incomplete, 
                 return; //return regardless of succeed or failure
@@ -128,8 +132,7 @@ namespace SudokuSolver
                 {
                     if (UnfilledCount == 0)
                     {
-                        FinishFlag = true;
-                        return true;
+                        return FinishFlag = true; ;
                     }
                     next = n2;
                     goto HEAD; 
@@ -137,7 +140,7 @@ namespace SudokuSolver
                 else
                 {
                     Grid[next.x][next.y] = 0;
-                    TempGrid[next.x][next.y] = PopFirst(TempGrid[next.x][next.y]);
+                    PopFirst(ref TempGrid[next.x][next.y]);
                     UnfilledCount++;
                     //return true;
                     goto RETURN;
@@ -162,7 +165,7 @@ namespace SudokuSolver
                     FinishFlag = (UnfilledCount == 0);//CheckFinish();
 
                     //debugger.Finish();
-                    System.Diagnostics.Debug.WriteLine("Loop:" + count);
+                    //System.Diagnostics.Debug.WriteLine("Loop:" + count);
                     return; //return regardless of succeed or failure
                 }
                 //PossiblesGrid[Next.x, Next.y] = GetPossible(Next.x, Next.y, true);
@@ -177,7 +180,7 @@ namespace SudokuSolver
                 //if (TempGrid[Next.x, Next.y].Possibles.Length == 0)
                 {
                     Next = Logger.Peek().Point;
-                    TempGrid[Next.x][Next.y] = PopFirst(TempGrid[Next.x][Next.y]);
+                    PopFirst(ref TempGrid[Next.x][Next.y]);
                     //TempGrid[pt.x,pt.y] = TempGrid[pt.x,pt.y].Skip(1).ToArray();
                     //TempGrid[Logger.Last().Point.x, Logger.Last().Point.y].Possibles.Remove(Logger.Last().Item2);
                     //Next = pt;//Logger.Last().Point;//rollback one
@@ -330,15 +333,14 @@ namespace SudokuSolver
 
         #endregion
 
-        private int[] PopFirst(int[] l)
+        private void PopFirst(ref int[] l)
         {
-
             int[] ret = new int[l.Length - 1];
             for (int i = 1; i < l.Length; i++)
             {
                 ret[i - 1] = l[i];
             }
-            return ret;
+            l = ret;
         }
         private void PrintHorizontalBorder(bool withnewline = false, bool headerfooter = false)
         {
@@ -415,23 +417,6 @@ namespace SudokuSolver
                     Console.Write("\n");
                 }
             }
-        }
-        
-
-        /// <summary>
-        /// DEPRECIATED. Checks for "x" each time. Use GetFilledCount at before looping. 
-        /// </summary>
-        /// <returns></returns>
-        private bool CheckFinish()
-        {
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    if (Grid[x][y] == 0) return false;
-                }
-            }
-            return true;
         }
 
         #region Impossibles
@@ -514,20 +499,21 @@ namespace SudokuSolver
         #region Get
         private Point GetNextEmpty(int startx = 0, int starty = 0, bool tryloop = false)
         {
-            int xa = startx, ya = starty;
+            int xa = startx, ya = starty +1;
             for (int i = 0; i < ((tryloop) ? 2 : 1); i++)
             {
                 for (int x = xa; x < FullGridWidth; x++)
                 {
                     for (int y = ya; y < FullGridWidth; y++)
                     {
+                        if (Next == new Point(x, y)) return Point.Null;//when looped back to original location, it means not found
                         if (Grid[x][y] == 0) return new Point(x, y);
                     }
                     ya = 0;
                 }
                 xa = 0;
             }
-            return Point.Null;
+            return Point.Null; //won't reach, but to pass compiler
         }
 
         #region GetLeast Empty Block
@@ -622,7 +608,8 @@ namespace SudokuSolver
                          orderby g.Count(), g.Key ascending
                          select new { g.Key, Count = g.Count(), g };
                     var d = a.ToArray();
-                    
+
+                    if (d.Length == 0) return Point.Null;
 
                     least.Add(new sLeastShare(GetSpecificPossibleTempCount(d[0].Key, new Point(xa,ya))[0],d[0].Key));
                 }
