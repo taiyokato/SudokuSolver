@@ -108,19 +108,20 @@ namespace SudokuSolver
             HEAD:
             if (next ==Point.Null)
             {
-                if (UnfilledCount == 0)
+                if (UnfilledCount <= 0)
                 {
                     return (FinishFlag = true);
                 }
                 return false;
             }
-            TempGrid[next.x][next.y] = GetPossible(next.x, next.y, true);
+            TempGrid[next.x][next.y] = GetPossible(next.x, next.y);
             {
 
             RETURN:
                 //PrintAll();
                 if (TempGrid[next.x][next.y].Length == 0)
-                { 
+                {
+                    UnfilledCount++;
                     return false;
                 }
                 Grid[next.x][next.y] = TempGrid[next.x][next.y][0];
@@ -130,21 +131,18 @@ namespace SudokuSolver
                 bool res = Execute5(n2);
                 if (res)
                 {
-                    if (UnfilledCount == 0)
+                    if (UnfilledCount <= 0)
                     {
-                        return FinishFlag = true; ;
+                        return FinishFlag = true;
                     }
                     next = n2;
                     goto HEAD; 
                 }
-                else
-                {
-                    Grid[next.x][next.y] = 0;
-                    PopFirst(ref TempGrid[next.x][next.y]);
-                    UnfilledCount++;
-                    //return true;
-                    goto RETURN;
-                }
+                Grid[next.x][next.y] = 0;
+                PopFirst(ref TempGrid[next.x][next.y]);
+                
+                //return true;
+                goto RETURN; //RETURN until TempGrid is empty for this point
             }
 
         }
@@ -154,6 +152,7 @@ namespace SudokuSolver
         /// <summary>
         /// Executes tree-search
         /// </summary>
+        [Obsolete]
         public void Execute2(ref int UnfilledCount)
         {
             ulong count = 0;

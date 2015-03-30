@@ -5,7 +5,7 @@ using System.Collections.Generic;
 /*
  * BY TAIYO KATO
  *
- * VER 1.0.1.6
+ * VER 1.0.1.8
  * 
  * Release log ommitted.
  */
@@ -143,4 +143,22 @@ namespace SudokuSolver
         NEITHER
     }
     #endregion
+
+    /// <summary>
+    /// Extension method container
+    /// </summary>
+    public static class Extensions
+    {
+        /// <summary>
+        /// Boost up Contains checking by using binary search
+        /// </summary>
+        /// <typeparam name="T">Any type, but mainly int for this</typeparam>
+        /// <param name="arr">Array must be sorted</param>
+        /// <param name="value">Value to search for</param>
+        /// <returns>Value is in array or not</returns>
+        public static bool Contains<T>(this T[] arr, T value)
+        {
+            return Array.BinarySearch(arr, value) >= 0;
+        }
+    }
 }
