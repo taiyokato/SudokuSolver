@@ -149,77 +149,6 @@ namespace SudokuSolver
 
 
         #region RecursiveTry
-        /// <summary>
-        /// Executes tree-search
-        /// </summary>
-        [Obsolete]
-        public void Execute2(ref int UnfilledCount)
-        {
-            ulong count = 0;
-            try
-            {
-            STEP0:
-                if (Next.x == -1)
-                {
-                    FinishFlag = (UnfilledCount == 0);//CheckFinish();
-
-                    //debugger.Finish();
-                    //System.Diagnostics.Debug.WriteLine("Loop:" + count);
-                    return; //return regardless of succeed or failure
-                }
-                //PossiblesGrid[Next.x, Next.y] = GetPossible(Next.x, Next.y, true);
-                TempGrid[Next.x][Next.y] = GetPossible(Next.x, Next.y, true);
-
-
-
-            STEP1:
-                count++;
-                //debugger.Write(Next.ToString());
-                if (TempGrid[Next.x][Next.y].Length == 0)
-                //if (TempGrid[Next.x, Next.y].Possibles.Length == 0)
-                {
-                    Next = Logger.Peek().Point;
-                    PopFirst(ref TempGrid[Next.x][Next.y]);
-                    //TempGrid[pt.x,pt.y] = TempGrid[pt.x,pt.y].Skip(1).ToArray();
-                    //TempGrid[Logger.Last().Point.x, Logger.Last().Point.y].Possibles.Remove(Logger.Last().Item2);
-                    //Next = pt;//Logger.Last().Point;//rollback one
-                    Grid[Next.x][Next.y] = 0;
-                    UnfilledCount++;
-                    Logger.Pop();
-                    goto STEP1;
-
-                    /*
-                    //Point pt = Logger.Peek().Point;
-                    if (TempGrid[pt.x][pt.y].Length == 0)
-                    //if (TempGrid[Logger.Last().Point.x][Logger.Last().Point.y].Possibles.Length == 0)
-                    {
-                        Logger.Pop();
-                        goto STEP1;
-                    }
-                    else
-                    {
-                        
-                    }//*/
-                }
-                else
-                {
-                    Grid[Next.x][Next.y] = TempGrid[Next.x][Next.y][0]; //[0].ToString();
-                    UnfilledCount--;
-                    //Grid[Next.x][Next.y] = TempGrid[Next.x][Next.y].Possibles[0].ToString();
-                    Logger.Push(new LogItem(Next, TempGrid[Next.x][Next.y][0]));
-                    //Logger.Add(new Tuple<Point][int>(Next][TempGrid[Next.x][Next.y].Possibles[0]));
-                    Next = GetNextEmpty(Next.x, Next.y, true);
-                    goto STEP0;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex);
-                FinishFlag = false;
-                //debugger.Finish();
-                return;
-            }
-        }
         #region 後始末
         private void CleanTempGrid(int x, int y)
         {
@@ -570,22 +499,6 @@ namespace SudokuSolver
 
 
         #region Experimental
-        private Point[] GetSpecificPossibleLocationsInBlock(int num, Point loc)
-        {
-            int xpos = GetInnerRange(loc.x);
-            int ypos = GetInnerRange(loc.y);
-            int t = 0;
-            Point[] locs = new Point[FullGridWidth];
-            for (int xa = (xpos - SingleBlockWidth); xa < xpos; xa++)
-            {
-                for (int ya = (ypos - SingleBlockWidth); ya < ypos; ya++)
-                {
-                    if (TempGrid[xa][ya].Contains(num)) locs[t++] = (new Point(xa, ya));
-                }
-            }
-            return locs.ToArray();
-        }
-        
         public Point LeastShareBlock()
         {
             List<sLeastShare> least = new List<sLeastShare>();

@@ -160,7 +160,6 @@ namespace SudokuSolver
             Initialize();
 
 
-
             Console.WriteLine("Input Each line\nEnter empty values as x\nSeparate values with a space: ");
             Console.WriteLine("Input \"resize\" to re-set grid size");
             //Console.WriteLine("Input \"redo\" to re-enter line");
@@ -168,6 +167,7 @@ namespace SudokuSolver
             Console.WriteLine();
             Console.WriteLine("Input values are: ");
             PrintAll();
+            Console.WriteLine("Press enter to start solving.");
             Console.Read();
 
             Solve(skipprint);
@@ -232,6 +232,7 @@ namespace SudokuSolver
         {
             //MUST USE Clone() as string[,] to prevent backupGrid getting overwritten when Grid is changed;
             //int[,] backupGrid = Grid.Clone() as int[,];
+            CopyAll(Grid, ref BackupGrid);
             do
             {
                 AdvancedFill(true);
@@ -250,6 +251,7 @@ namespace SudokuSolver
 
                             //int[] inter = FullInts.Except(GetFilledInner(x, y)).Intersect(FullInts.Except().ToArray();
                             //int[] intersect = TempGrid[p.x][p.y].Intersect(inter).ToArray();
+
 
                             if (intersect.Length == 1)
                             {
@@ -716,7 +718,7 @@ namespace SudokuSolver
                 {
                     if (Grid[xa][ya] != 0) { if (clearafter) { ClearRelativeTemp(xa, ya, Grid[xa][ya]); } continue; }//skip if filled
                     int[] inboxexceptselfpossible = InBlockPossible(xa, ya, false);
-                    TempGrid[xa][ya] = GetPossible(xa, ya);
+                    //TempGrid[xa][ya] = GetPossible(xa, ya);//GetPossible is overwriting the cleared tempgrid
                     var diff = TempGrid[xa][ya].Except(inboxexceptselfpossible).ToArray();
                     if (diff.Length == 1)
                     {
@@ -1594,7 +1596,8 @@ namespace SudokuSolver
                 {
                     main_h |= (main[x][i] == 1);
                     temp_h |= TempGrid[xpos][ypos + i - y].Contains(val);
-                } if (i != x)
+                }
+                if (i != x)
                 {
                     main_v |= (main[i][y] == 1);
                     temp_v |= TempGrid[xpos + i - x][ypos].Contains(val);
@@ -1642,11 +1645,6 @@ namespace SudokuSolver
             return main;
         }
         
-        #endregion
-
-        #region Test
-        //no test code so far!
-        //write something new!
         #endregion
     }
 }

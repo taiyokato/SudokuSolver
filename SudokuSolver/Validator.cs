@@ -60,45 +60,6 @@ namespace SudokuSolver
         }
 
         /// <summary>
-        /// DEPRECIATED! FOUND LOOPHOLE IN SUM
-        /// 左から右で横の列にある固有数値を数える。
-        /// すべてのマスが埋められてる前提なので、unfilled>0だとfalseを返す
-        /// 一列ずつ数値を足して、すべてがSummation(FullGridWidth)と同じ値だった場合true返す
-        /// もし違った場合、falseを返す
-        /// </summary>
-        /// <param name="grid">参照するGrid</param>
-        /// <param name="unfilled">UnfilledCount</param>
-        /// <param name="result">チェック成功だった場合、resultにbool結果が吐き出される</param>
-        /// <returns>True： チェックできる False: チェック出来ない</returns>
-        public static bool Validate(ref int[,] grid, int unfilled, out bool result)
-        {
-            result = true;
-            if (unfilled > 0) { result = false; return false; }
-            int count = 0;
-            for (int x = 0; x < FullGridWidth; x++)
-            {
-                for (int y = 0; y < FullGridWidth; y++)
-                {
-                    int item = grid[x, y];
-                    if (item.Equals("x")) { continue; }
-                    count += item;
-                }
-                if (count != sum)
-                {
-                    BreakedAt = x;
-                    goto END;
-                }
-                count = 0;
-            }
-            Success = true;
-        END:
-            result = Success;
-            return true;
-            
-
-        }
-
-        /// <summary>
         /// Checks the grid before starting to solve
         /// </summary>
         /// <param name="grid">ref Grid</param>
@@ -126,8 +87,20 @@ namespace SudokuSolver
                 }
                 //counts = new int[fgw];
             }
+            for (int x = 0; x < FullGridWidth; x += SingleBlockWidth)
+            {
+                for (int y = 0; y < FullGridWidth; y += SingleBlockWidth)
+                {
+                    if (OverlappingInner(ref grid, x, y))
+                    {
+                        BreakedAt = x;
+                        return false;
+                    }
+                }
+            }
             return true;
         }
+
 
         /// <summary>
         /// USE THIS NOW! ENSURES NO DUPLICATE
@@ -157,8 +130,40 @@ namespace SudokuSolver
             }
             Success = true;
         END:
+            for (int x = 0; x < FullGridWidth; x+=SingleBlockWidth)
+            {
+                for (int y = 0; y < FullGridWidth; y+=SingleBlockWidth)
+                {
+                    if (OverlappingInner(ref grid, x, y)) return false;
+                }
+            }
             result = Success;
             return true;
+        }
+
+
+        /// <summary>
+        /// Checks no same value exists in the same block
+        /// </summary>
+        private static bool OverlappingInner(ref int[][] grid, int startx, int starty)
+        {
+            HashSet<int> InBlock = new HashSet<int>();
+
+            int xmax = startx + SingleBlockWidth;
+            int ymax = starty + SingleBlockWidth;
+
+            for (int xa = startx; xa < xmax; xa++)
+            {
+                for (int ya = starty; ya < ymax; ya++)
+                {
+                    if (grid[xa][ya] == 0) continue;
+                    if (!InBlock.Add(grid[xa][ya]))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         /// <summary>
